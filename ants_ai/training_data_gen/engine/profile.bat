@@ -1,0 +1,1 @@
+python -m cProfile %1 -o thing.txt

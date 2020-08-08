@@ -1,0 +1,7 @@
+README.md
+setup.py
+ants.ai.egg-info/PKG-INFO
+ants.ai.egg-info/SOURCES.txt
+ants.ai.egg-info/dependency_links.txt
+ants.ai.egg-info/requires.txt
+ants.ai.egg-info/top_level.txt

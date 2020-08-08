@@ -1,0 +1,6 @@
+﻿.idea
+out
+venv
+training_data_gen/tournaments
+**/*.class
+**/Pipfile.lock

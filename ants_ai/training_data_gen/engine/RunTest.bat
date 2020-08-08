@@ -1,0 +1,1 @@
+python playgame.py "python sample_bots/python/GreedyBot.py" "java -cp C:\clojure-1.7.0\clojure-1.7.0.jar;C:\Ants\ants clojure.main C:\Ants\ants\MyBot.clj" --map_file maps/example/tutorial1.map --turns 60 --scenario --food none --player_seed 7 --verbose -e
