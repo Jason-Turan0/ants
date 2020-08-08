@@ -17,12 +17,13 @@ from ants_ai.training_data_gen.engine.play_result import PlayResult
 from typing import List
 import os
 
+
 class TournamentRunner:
     def __init__(self, gateway):
         self.gateway = gateway
 
     def play_game(self, bot0: Bot, bot1: Bot, mapPath: str) -> PlayResult:
-        turns = 500
+        turns = 200
         loadtime = 3000
         turntime = 1000
         game_id = str(uuid4())
@@ -94,50 +95,45 @@ class TournamentRunner:
 
     def runTournament(self, tournamentDirectory, mapPath):
         allBots = ['hippo', 'lazarant', 'xathis', 'speedyBot', 'memetix', 'pkmiec']
-        #allBots = ['hippo', 'lazarant', 'xathis', 'speedyBot',]
+        # allBots = ['hippo', 'lazarant', 'xathis', 'speedyBot',]
         gamesToPlay = 6
         gameSettings = seq(combinations(allBots, 2)) \
             .flat_map(lambda combo: seq(range(0, gamesToPlay)) \
-            .map(lambda game_index: (combo[0], combo[1], game_index) if (game_index < 3) else (combo[1], combo[0], game_index)))\
+                      .map(lambda game_index: (combo[0], combo[1], game_index) if (game_index < 3) else (
+        combo[1], combo[0], game_index))) \
             .list()
         print(f'Playing {len(gameSettings)} games')
-        playResults:List[PlayResult] = seq(gameSettings).map(lambda tuple: self.play_game(Bot(tuple[0]), Bot(tuple[1]), mapPath)).list()
+        playResults: List[PlayResult] = seq(gameSettings).map(
+            lambda tuple: self.play_game(Bot(tuple[0]), Bot(tuple[1]), mapPath)).list()
 
         os.makedirs(tournamentDirectory)
         for pr in playResults:
-            replayPath = f'{tournamentDirectory}\\{pr.game_id}.json'
-            htmlPath = f'{tournamentDirectory}\\{pr.game_id}.html'
+            replayPath = f'{tournamentDirectory}/{pr.game_id}.json'
+            htmlPath = f'{tournamentDirectory}/{pr.game_id}.html'
             save_play_result(pr, replayPath)
             generate_visualization(replayPath, htmlPath)
 
-        def sumTournamentScore (botType:str):
+        def sumTournamentScore(botType: str):
             bot = Bot(botType)
-            def determineScore (bot: Bot, pr: PlayResult):
+
+            def determine_score(bot: Bot, pr: PlayResult):
                 botIndex = pr.playernames.index(bot.bot_name)
-                otherBotIndex = 1 if botIndex ==0 else 0
-                if pr.score[botIndex] == pr.score[otherBotIndex]:return 1
-                if pr.score[botIndex] > pr.score[otherBotIndex]:return 2
-                if pr.score[botIndex] < pr.score[otherBotIndex]:return 0
+                otherBotIndex = 1 if botIndex == 0 else 0
+                if pr.score[botIndex] == pr.score[otherBotIndex]: return 1
+                if pr.score[botIndex] > pr.score[otherBotIndex]: return 2
+                if pr.score[botIndex] < pr.score[otherBotIndex]: return 0
+
             botScore = seq(playResults) \
                 .filter(lambda pr: bot.bot_name in pr.playernames) \
-                .map(lambda pr: determineScore(bot, pr)) \
+                .map(lambda pr: determine_score(bot, pr)) \
                 .sum()
             return (bot.bot_name, botScore)
 
-        finalScore = seq(allBots)\
-            .map(sumTournamentScore)\
-            .sorted(key=lambda tuple: tuple[1], reverse=True)\
+        finalScore = seq(allBots) \
+            .map(sumTournamentScore) \
+            .sorted(key=lambda tuple: tuple[1], reverse=True) \
             .list()
         print(finalScore)
-
-
-
-        #def countScore(botName, gameResults):
-        #    seq(gameResults)
-
-        # tournamentScores = seq(allBots)\
-        #    .map(lambda bot_name: (bot_name, seq(gameResults).filter(lambda gr: seq(gr.bot_types).filter(lambda bt: bot_name == bt).any())))
-        #    .map()
 
 
 def save_play_result(result: PlayResult, replay_path: str):

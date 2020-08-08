@@ -10,9 +10,10 @@ from datetime import datetime
 class TestTournament(unittest.TestCase):
     def runGame(self) -> PlayResult:
         tr = TournamentRunner(JavaGateway())
-        mapPath = f'{os.getcwd()}\\ants_ai\\training_data_gen\\engine\\maps\\training\\small.map'
+        mapPath = f'{os.getcwd()}\\training_data_gen\\engine\\maps\\training\\small.map'
         return tr.play_game(Bot('hippo'), Bot('lazarant'), mapPath)
 
+    @unittest.skip('Integration test')
     def test_rungame(self):
         self.assertIsNotNone(self.runGame())
 

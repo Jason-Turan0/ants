@@ -7,7 +7,7 @@ import jsonpickle
 class SerializationTests(unittest.TestCase):
 
     def test_DeserializeFromFile(self):
-        dataPath = f'{os.getcwd()}\\ants_ai\\training_data_gen\\tests\\test_data\\PlayResult.json'
+        dataPath = f'{os.getcwd()}\\training_data_gen\\tests\\test_data\\PlayResult.json'
         f = open(dataPath, "r")
         json_data = f.read()
         f.close()

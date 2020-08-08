@@ -10,7 +10,7 @@ public class XathisCommandAdapter implements CommandAdapter {
 
     Connection c;
 
-  //  @Override
+    @Override
     public void init(List<String> data) {
         c = new Connection();
         Strategy s = new Strategy();
@@ -18,7 +18,7 @@ public class XathisCommandAdapter implements CommandAdapter {
         s.init(c);
     }
 
-   // @Override
+    @Override
     public String playTurn(List<String> playData) {
         c.update(playData);
         c.doTurn();
