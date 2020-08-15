@@ -1,4 +1,4 @@
-from training.game_state.position import Position
+from training.game_state.game_map import Position
 
 
 class FoodTurn:
