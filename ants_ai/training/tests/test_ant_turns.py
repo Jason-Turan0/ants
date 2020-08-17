@@ -43,5 +43,6 @@ class TestAntTurns(unittest.TestCase):
         self.assertIsNotNone(test_ant)
         self.assertEqual('lazarant', test_ant.bot.bot_type)
 
+
 if __name__ == '__main__':
     unittest.main()
