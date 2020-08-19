@@ -19,5 +19,5 @@ def get_test_play_result() -> PlayResult:
 
 def create_test_game_state() -> GameState:
     play_result = get_test_play_result()
-    generator = GameStateGenerator(play_result)
-    return generator.generate()
+    generator = GameStateGenerator()
+    return generator.generate(play_result)

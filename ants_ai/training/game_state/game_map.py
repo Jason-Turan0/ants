@@ -79,17 +79,22 @@ class GameMap:
     def get_positions_within_distance(self, pos: Position, radius_squared: int) -> List[Position]:
         distance = sqrt(radius_squared)
         dirs = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
-        distances = seq(range(0, ceil(distance))) \
-            .flat_map(lambda row: seq(range(0, ceil(distance))).map(lambda col: (row, col))) \
-            .flat_map(lambda dist: seq(dirs).map(lambda dir: (dist[0] * dir[0], dist[1] * dir[1]))) \
-            .distinct() \
-            .list()
-        points = seq(distances) \
-            .map(lambda d: Position(pos.row + d[0], pos.column + d[1])) \
-            .filter(lambda p: p.calculate_distance(pos) < distance) \
-            .map(lambda p: self.wrap_position(p.row, p.column))\
-            .order_by(lambda p: p) \
-            .list()
-        return points
-        # points_to_check = seq(distances).map(lambda t: Position(pos.row+t[0], pos.column+t[1]))
-        # points_within_distance = points_to_check.filter(p)
+
+        def get_distances():
+            return seq(range(0, floor(distance))) \
+                .flat_map(lambda row: seq(range(0, floor(distance))).map(lambda col: (row, col))) \
+                .flat_map(lambda dist: seq(dirs).map(lambda dir: (dist[0] * dir[0], dist[1] * dir[1]))) \
+                .distinct() \
+                .list()
+
+        def get_positions(distances):
+            return seq(distances) \
+                .map(lambda d: Position(pos.row + d[0], pos.column + d[1])) \
+                .filter(lambda p: p.calculate_distance(pos) < distance) \
+                .map(lambda p: self.wrap_position(p.row, p.column)) \
+                .order_by(lambda p: p) \
+                .list()
+
+        distances = get_distances()
+        positions = get_positions(distances)
+        return positions

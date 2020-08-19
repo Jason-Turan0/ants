@@ -7,15 +7,15 @@ from training.tests.test_utils import get_test_play_result, create_test_game_sta
 
 class TestAntTurns(unittest.TestCase):
     def get_ant_at_pos (self,game_state, turn, position) -> AntTurn:
-        return seq(game_state.game_turns[turn].ants).find(lambda a: a.position == position)
+        return game_state.game_turns[turn].ants.get(position)
 
     def test_create_ants_turn0(self):
         game_state = create_test_game_state()
         turn0 = game_state.game_turns[0]
         self.assertEqual(8, len(turn0.ants))
-        self.assertEqual(Position(1, 19), turn0.ants[0].position)
-        self.assertEqual('lazarant', turn0.ants[0].bot.bot_type)
-        self.assertEqual('pkmiec', turn0.ants[7].bot.bot_type)
+        self.assertEqual(Position(1, 19), turn0.ants[Position(1,19)].position)
+        self.assertEqual('lazarant', turn0.ants[Position(1,19)].bot.bot_type)
+        self.assertEqual('pkmiec', turn0.ants[Position(41,19)].bot.bot_type)
 
 
     def test_create_ants_turn1(self):
@@ -35,7 +35,7 @@ class TestAntTurns(unittest.TestCase):
         game_state = create_test_game_state()
         turn2 = game_state.game_turns[2]
         self.assertEqual(13, len(turn2.ants))
-        self.assertEqual(Position(3, 19), turn2.ants[0].position)
+        self.assertEqual(Position(3, 19), turn2.ants[Position(3,19)].position)
 
     def test_ant_position(self):
         game_state = create_test_game_state()
