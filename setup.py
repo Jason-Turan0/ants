@@ -14,5 +14,5 @@ setup(
     url='',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
-    install_requires=['py4j', 'PyFunctional', 'jsonpickle']
+    install_requires=['py4j', 'PyFunctional', 'jsonpickle', 'snakeviz']
 )

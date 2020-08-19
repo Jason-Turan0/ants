@@ -80,11 +80,12 @@ class GameMap:
         distance = sqrt(radius_squared)
         dirs = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
 
+        #TODO Hot path. Consider translating into plain old Python.
         def get_distances():
             return seq(range(0, floor(distance))) \
                 .flat_map(lambda row: seq(range(0, floor(distance))).map(lambda col: (row, col))) \
                 .flat_map(lambda dist: seq(dirs).map(lambda dir: (dist[0] * dir[0], dist[1] * dir[1]))) \
-                .distinct() \
+                .distinct()\
                 .list()
 
         def get_positions(distances):
@@ -92,8 +93,9 @@ class GameMap:
                 .map(lambda d: Position(pos.row + d[0], pos.column + d[1])) \
                 .filter(lambda p: p.calculate_distance(pos) < distance) \
                 .map(lambda p: self.wrap_position(p.row, p.column)) \
-                .order_by(lambda p: p) \
+                .order_by(lambda p: p)\
                 .list()
+
 
         distances = get_distances()
         positions = get_positions(distances)

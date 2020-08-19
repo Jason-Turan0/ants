@@ -24,8 +24,6 @@ class TestGameStateTranslator(unittest.TestCase):
         self.assertIsNone(
             translator.convert_array_to_enum([False, False, False, False, False, False, False], PositionState))
 
-    def test_convert_game_state(self):
-        cProfile.run('convert_game_state()')
 
 
 if __name__ == '__main__':

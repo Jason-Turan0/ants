@@ -14,8 +14,9 @@ def convert_game_state():
         .map(lambda at: translator.convert_to_example(at, game_state)) \
         .to_list()
     pr.disable()
-    pr.print_stats(sort='cumtime')
+    #pr.print_stats(sort='cumtime')
+    pr.dump_stats('ants_example.profile')
 
-print('RAW')
-print('=' * 80)
+#print('RAW')
+#print('=' * 80)
 convert_game_state()

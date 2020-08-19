@@ -38,7 +38,7 @@ class GameStateTranslater:
 
 
     def convert_array_to_enum(self, bool_array: List[bool], enum_class: Type[T]) -> T:
-        enum_items = self.get_enum_items(enum_class)
+        enum_items = enum_class.__members__.items()
         if len(enum_items) != len(bool_array): raise ValueError(
             f'array mismatch enumCount: ${len(enum_items)} boolCount:${len(bool_array)}')
         if True in bool_array:
