@@ -5,15 +5,11 @@ from ants_ai.training.neural_network.game_state_translator import GameStateTrans
 game_state = create_test_game_state()
 translator = GameStateTranslater()
 def convert_game_state():
-    ant_turns = seq(game_state.game_turns) \
-        .flat_map(lambda gt : gt.ants.values()) \
-        .filter(lambda at: at.bot.bot_name == game_state.winning_bot.bot_name)
     pr = cProfile.Profile()
     pr.enable()
-    training_data = ant_turns\
-        .map(lambda at: translator.convert_to_example(at, game_state)) \
-        .to_list()
+    training_data = translator.convert_to_input('pkmiec_1', game_state)
     pr.disable()
+    print(len(training_data))
     #pr.print_stats(sort='cumtime')
     pr.dump_stats('ants_example.profile')
 

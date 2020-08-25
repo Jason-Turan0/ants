@@ -24,8 +24,10 @@ class GameStateGenerator:
                 .reduce(lambda position, direction: game_map.adjacent_movement_position(position, direction),
                         Position(start_row, start_col))
 
-            next_direction_code = direction_history[(turn_number- start_turn)] if (turn_number - start_turn) < len(direction_history) else None
-            return position_at_turn, AntTurn(turn_number, bots[bot_index], position_at_turn, row, Direction(next_direction_code))
+            next_direction_code = direction_history[(turn_number - start_turn)] if (turn_number - start_turn) < len(
+                direction_history) else None
+            return position_at_turn, AntTurn(turn_number, bots[bot_index], position_at_turn, row,
+                                             Direction(next_direction_code))
 
         ants = seq(play_result.replaydata.ants) \
             .filter(lambda row: (turn_number >= row[2]) and (turn_number < (row[3]))) \
@@ -35,7 +37,8 @@ class GameStateGenerator:
         def map_hill_turn(row):
             row_num, col_num, bot_index, capture_turn = row
             is_alive = turn_number < capture_turn
-            return Position(row_num, col_num), HillTurn(turn_number, bots[bot_index], Position(row_num, col_num), is_alive)
+            return Position(row_num, col_num), HillTurn(turn_number, bots[bot_index], Position(row_num, col_num),
+                                                        is_alive)
 
         hills = seq(play_result.replaydata.hills).map(map_hill_turn).to_dict()
 
@@ -52,4 +55,5 @@ class GameStateGenerator:
         game_turns = list(
             map(lambda turn_number: self.generate_game_turn(turn_number, bots, game_map, play_result),
                 range(0, play_result.game_length)))
-        return GameState(game_turns, game_map, play_result.replaydata.viewradius2, bots[play_result.rank[0]])
+        return GameState(game_turns, game_map, play_result.replaydata.viewradius2, bots[play_result.rank[0]], \
+                         play_result.replaydata.ranking_turn)

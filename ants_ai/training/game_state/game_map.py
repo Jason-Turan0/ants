@@ -78,25 +78,16 @@ class GameMap:
 
     def get_positions_within_distance(self, pos: Position, radius_squared: int) -> List[Position]:
         distance = sqrt(radius_squared)
-        dirs = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
-
-        #TODO Hot path. Consider translating into plain old Python.
-        def get_distances():
-            return seq(range(0, floor(distance))) \
-                .flat_map(lambda row: seq(range(0, floor(distance))).map(lambda col: (row, col))) \
-                .flat_map(lambda dist: seq(dirs).map(lambda dir: (dist[0] * dir[0], dist[1] * dir[1]))) \
-                .distinct()\
-                .list()
-
-        def get_positions(distances):
-            return seq(distances) \
-                .map(lambda d: Position(pos.row + d[0], pos.column + d[1])) \
-                .filter(lambda p: p.calculate_distance(pos) < distance) \
-                .map(lambda p: self.wrap_position(p.row, p.column)) \
-                .order_by(lambda p: p)\
-                .list()
-
-
-        distances = get_distances()
-        positions = get_positions(distances)
+        d_ceil = ceil(distance)
+        positions = [self.wrap_position(pos.row+x,pos.column+y) \
+                     for x in range(-d_ceil, d_ceil) for y in range(-d_ceil, d_ceil) \
+                     if Position(pos.row + x,pos.column + y).calculate_distance(pos) < distance]
         return positions
+
+
+        #return seq(distances) \
+        #    .map(lambda d: Position(pos.row + d[0], pos.column + d[1])) \
+        #    .filter(lambda p: p.calculate_distance(pos) < distance) \
+        #    .map(lambda p: self.wrap_position(p.row, p.column)) \
+        #    .order_by(lambda p: p) \
+        #    .list()

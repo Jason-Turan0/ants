@@ -1,9 +1,7 @@
-import importlib
-from uuid import uuid4
 from py4j.java_gateway import JavaGateway
-import socket
 
-class House: 
+
+class House:
     def __init__(self, gameIdentifier, playerName,playerType, gateway):         
         self.turnCommands =''
         self.gateway = gateway

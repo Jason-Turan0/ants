@@ -34,8 +34,7 @@ class GameStateTranslater:
     def convert_enum_to_array(self, enum_val: T, enum_class: Type[T]) -> List[bool]:
         if self.cached_types.get(enum_class) is None:
             self.cache_enum_type(enum_class)
-        return  self.cached_types[enum_class].get(enum_val)
-
+        return self.cached_types[enum_class].get(enum_val)
 
     def convert_array_to_enum(self, bool_array: List[bool], enum_class: Type[T]) -> T:
         enum_items = enum_class.__members__.items()
@@ -47,8 +46,10 @@ class GameStateTranslater:
             return None
 
     def convert_to_example(self, ant_turn: AntTurn, game_state: GameState) -> NeuralNetworkExample:
-        ant_vision = game_state.game_map.get_positions_within_distance(ant_turn.position,
-                                                                       game_state.view_radius_squared)
+        ant_vision = seq(game_state.game_map.get_positions_within_distance(ant_turn.position,
+                                                                       game_state.view_radius_squared))\
+                        .filter(lambda p: p != ant_turn.position)\
+                        .to_list()
         turn_state = game_state.game_turns[ant_turn.turn_number]
 
         def convert_pos_to_state(position, game_state):
@@ -63,10 +64,24 @@ class GameStateTranslater:
             return PositionState.WATER if game_state.game_map.terrain[
                                               position] == TerrainType.WATER else PositionState.LAND
 
-        nn_input = seq(ant_vision) \
-            .filter(lambda p: p != ant_turn.position) \
-            .map(lambda p: convert_pos_to_state(p, game_state)) \
-            .flat_map(lambda ps: self.convert_enum_to_array(ps, PositionState)) \
-            .list()
+        #nn_input = seq(ant_vision) \
+        #    .filter(lambda p: p != ant_turn.position) \
+        #    .map(lambda p: convert_pos_to_state(p, game_state)) \
+        #    .flat_map(lambda ps: self.convert_enum_to_array(ps, PositionState)) \
+        #    .list()
+
+        #No sequence implementation. Seems to be slightly faster
+        enum_length=len(PositionState.__members__.items())
+        nn_input =[None] * len(ant_vision) * enum_length
+        for index, av_pos in enumerate(ant_vision):
+            pos_state = convert_pos_to_state(av_pos, game_state)
+            bools = self.convert_enum_to_array(pos_state, PositionState)
+            nn_input[index*enum_length: (index*enum_length) + enum_length] =bools
 
         return NeuralNetworkExample(nn_input, self.convert_enum_to_array(ant_turn.next_direction, Direction))
+
+    def convert_to_input(self, bot_name: str, game_state: GameState) -> List[NeuralNetworkExample]:
+        ant_turns = seq(game_state.game_turns) \
+            .flat_map(lambda gt : gt.ants.values()) \
+            .filter(lambda at: at.bot.bot_name == bot_name and at.turn_number <= game_state.ranking_turn+1)
+        return list(map(lambda at: self.convert_to_example(at, game_state), ant_turns))
