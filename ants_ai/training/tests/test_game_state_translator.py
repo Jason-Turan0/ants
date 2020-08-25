@@ -2,7 +2,7 @@ import unittest
 from ants_ai.training.neural_network.game_state_translator import GameStateTranslater, PositionState
 from training.game_state.game_map import Position
 from training.tests.test_utils import create_test_game_state
-
+import tensorflow as tf
 class TestGameStateTranslator(unittest.TestCase):
 
     def test_create_nn_input(self):
@@ -24,7 +24,12 @@ class TestGameStateTranslator(unittest.TestCase):
         self.assertIsNone(
             translator.convert_array_to_enum([False, False, False, False, False, False, False], PositionState))
 
-
+    def test_create_nn_input2(self):
+        game_state = create_test_game_state()
+        translator = GameStateTranslater()
+        blah = translator.convert_to_nn_input('pkmiec_1', [game_state])
+        print(blah.train)
+        print(blah.test)
 
 if __name__ == '__main__':
     unittest.main()
