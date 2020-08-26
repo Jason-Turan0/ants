@@ -7,24 +7,12 @@ from enum import Enum
 
 from training.neural_network.neural_network_example import NeuralNetworkExample
 from training.neural_network.nueral_network_dataset import NeuralNetworkDataset
-
-
-class PositionState(Enum):
-    FRIENDLY_ANT = 0,
-    HOSTILE_ANT = 1,
-    FRIENDLY_HILL = 2,
-    HOSTILE_HILL = 3,
-    FOOD = 4,
-    WATER = 5,
-    LAND = 6
-
+from training.neural_network.position_state import PositionState
 
 TRAINING_VIEW_RADIUS = 77;
 TRAINING_VIEW_SIZE = 241;
 
 T = TypeVar('T', bound=Enum)
-
-import numpy as np
 
 
 class GameStateTranslater:
@@ -77,14 +65,15 @@ class GameStateTranslater:
         #    .list()
 
         # No sequence implementation. Seems to be slightly faster
-        enum_length = len(PositionState.__members__.items())
-        nn_input = [None] * len(ant_vision) * enum_length
-        for index, av_pos in enumerate(ant_vision):
-            pos_state = convert_pos_to_state(av_pos, game_state)
-            bools = self.convert_enum_to_array(pos_state, PositionState)
-            nn_input[index * enum_length: (index * enum_length) + enum_length] = bools
+        #enum_length = len(PositionState.__members__.items())
+        #nn_input = [None] * len(ant_vision) * enum_length
+        #for index, av_pos in enumerate(ant_vision):
+        #    pos_state = convert_pos_to_state(av_pos, game_state)
+        #    bools = self.convert_enum_to_array(pos_state, PositionState)
+        #    nn_input[index * enum_length: (index * enum_length) + enum_length] = bools
 
-        return NeuralNetworkExample(nn_input, self.convert_enum_to_array(ant_turn.next_direction, Direction))
+        return NeuralNetworkExample([convert_pos_to_state(av, game_state) for av in ant_vision],
+                                    ant_turn.next_direction)
 
     def convert_to_nn_input(self, bot_name: str, game_states: List[GameState]) -> NeuralNetworkDataset:
         examples = [self.convert_to_example(at, gs) \
