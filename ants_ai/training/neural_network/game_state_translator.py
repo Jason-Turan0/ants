@@ -78,6 +78,6 @@ class GameStateTranslater:
     def convert_to_nn_input(self, bot_name: str, game_states: List[GameState]) -> NeuralNetworkDataset:
         examples = [self.convert_to_example(at, gs) \
                     for gs in game_states for gt in gs.game_turns for at in gt.ants.values() \
-                    if (gt.turn_number <= 5) and at.bot.bot_name == bot_name]
-                    #if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
+                    #if (gt.turn_number <= 5) and at.bot.bot_name == bot_name]
+                    if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
         return NeuralNetworkDataset(examples)
