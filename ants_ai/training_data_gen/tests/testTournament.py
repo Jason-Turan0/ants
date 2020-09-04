@@ -1,11 +1,13 @@
 from ants_ai.training_data_gen.engine.play_result import PlayResult
 import unittest
-from ants_ai.training_data_gen.tournament.tournament_runner import TournamentRunner, save_play_result, generate_visualization
+from ants_ai.training_data_gen.tournament.tournament_runner import TournamentRunner, save_play_result, \
+    generate_visualization
 from ants_ai.training_data_gen.engine.bot import Bot
 from tempfile import mkdtemp
 from py4j.java_gateway import JavaGateway
 import os
 from datetime import datetime
+
 
 class TestTournament(unittest.TestCase):
     def runGame(self) -> PlayResult:
@@ -41,7 +43,14 @@ class TestTournament(unittest.TestCase):
         mapPath = f'{os.getcwd()}\\engine\\maps\\training\\small.map'
         tournamentTime = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
         tournamentPath = f'{os.getcwd()}\\tournaments\\{tournamentTime}'
-        tr.runTournament(tournamentPath, mapPath)
+        tr.run_tournament(tournamentPath, mapPath)
+
+    def test_generate_data(self):
+        tr = TournamentRunner(JavaGateway())
+        mapPath = f'{os.getcwd()}\\training_data_gen\\engine\\maps\\training\\small.map'
+        tournamentTime = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
+        tournamentPath = f'{os.getcwd()}\\generated_data\\{tournamentTime}'
+        tr.generate_game_data(tournamentPath, mapPath, 'memetix', 50)
 
 
 if __name__ == '__main__':

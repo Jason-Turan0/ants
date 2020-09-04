@@ -12,7 +12,7 @@ class TestGameStateTranslator(unittest.TestCase):
                                                                        game_state.view_radius_squared)
         translator = GameStateTranslater()
 
-        nn_input = translator.convert_to_example(test_ant, game_state)
+        nn_input = translator.convert_to_example_ant_vision(test_ant, game_state)
         self.assertIsNotNone(nn_input)
         self.assertEqual(7 * (len(ant_vision)-1), len(nn_input.nn_input))
 
@@ -27,7 +27,7 @@ class TestGameStateTranslator(unittest.TestCase):
     def test_create_nn_input2(self):
         game_state = create_test_game_state()
         translator = GameStateTranslater()
-        blah = translator.convert_to_nn_input('pkmiec_1', [game_state])
+        blah = translator.convert_to_nn_input_ant_vision('pkmiec_1', [game_state])
         print(blah.train)
         print(blah.test)
 

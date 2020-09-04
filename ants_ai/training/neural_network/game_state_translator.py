@@ -5,6 +5,7 @@ from training.game_state.game_state import GameState
 from typing import List, Type, TypeVar, Dict
 from enum import Enum
 
+from training.game_state.game_turn import GameTurn
 from training.neural_network.neural_network_example import NeuralNetworkExample
 from training.neural_network.nueral_network_dataset import NeuralNetworkDataset
 from training.neural_network.position_state import PositionState
@@ -39,45 +40,45 @@ class GameStateTranslater:
         else:
             return None
 
-    def convert_to_example(self, ant_turn: AntTurn, game_state: GameState) -> NeuralNetworkExample:
+    def convert_pos_to_state(self, pos:Position, ant_turn: AntTurn, turn_state: GameTurn, game_state: GameState):
+        if turn_state.ants.get(pos) is not None:
+            return PositionState.FRIENDLY_ANT if turn_state.ants[
+                                                     pos].bot.bot_name == ant_turn.bot.bot_name else PositionState.HOSTILE_ANT
+        if turn_state.hills.get(pos) is not None and turn_state.hills[pos].is_alive:
+            return PositionState.FRIENDLY_HILL if turn_state.hills[
+                                                      pos].owner_bot.bot_name == ant_turn.bot.bot_name else PositionState.HOSTILE_HILL
+        if turn_state.foods.get(pos) is not None:
+            return PositionState.FOOD
+        return PositionState.WATER if game_state.game_map.terrain[
+                                          pos] == TerrainType.WATER else PositionState.LAND
+
+    def convert_to_example_ant_vision(self, ant_turn: AntTurn, game_state: GameState) -> NeuralNetworkExample:
         ant_vision = seq(game_state.game_map.get_positions_within_distance(ant_turn.position,
                                                                            game_state.view_radius_squared)) \
             .filter(lambda p: p != ant_turn.position) \
             .to_list()
         turn_state = game_state.game_turns[ant_turn.turn_number]
-
-        def convert_pos_to_state(position, game_state):
-            if turn_state.ants.get(position) is not None:
-                return PositionState.FRIENDLY_ANT if turn_state.ants[
-                                                         position].bot.bot_name == ant_turn.bot.bot_name else PositionState.HOSTILE_ANT
-            if turn_state.hills.get(position) is not None and turn_state.hills[position].is_alive:
-                return PositionState.FRIENDLY_HILL if turn_state.hills[
-                                                          position].owner_bot.bot_name == ant_turn.bot.bot_name else PositionState.HOSTILE_HILL
-            if turn_state.foods.get(position) is not None:
-                return PositionState.FOOD
-            return PositionState.WATER if game_state.game_map.terrain[
-                                              position] == TerrainType.WATER else PositionState.LAND
-
-        # nn_input = seq(ant_vision) \
-        #    .filter(lambda p: p != ant_turn.position) \
-        #    .map(lambda p: convert_pos_to_state(p, game_state)) \
-        #    .flat_map(lambda ps: self.convert_enum_to_array(ps, PositionState)) \
-        #    .list()
-
-        # No sequence implementation. Seems to be slightly faster
-        #enum_length = len(PositionState.__members__.items())
-        #nn_input = [None] * len(ant_vision) * enum_length
-        #for index, av_pos in enumerate(ant_vision):
-        #    pos_state = convert_pos_to_state(av_pos, game_state)
-        #    bools = self.convert_enum_to_array(pos_state, PositionState)
-        #    nn_input[index * enum_length: (index * enum_length) + enum_length] = bools
-
-        return NeuralNetworkExample([convert_pos_to_state(av, game_state) for av in ant_vision],
+        return NeuralNetworkExample([self.convert_pos_to_state(av,ant_turn,turn_state, game_state) for av in ant_vision],
                                     ant_turn.next_direction)
 
-    def convert_to_nn_input(self, bot_name: str, game_states: List[GameState]) -> NeuralNetworkDataset:
-        examples = [self.convert_to_example(at, gs) \
+    def convert_to_example_entire_map(self, ant_turn: AntTurn, game_state: GameState) -> NeuralNetworkExample:
+        map_positions = seq(game_state.game_map.terrain.keys()) \
+            .order_by(lambda p: p)\
+            .filter(lambda p: p != ant_turn.position) \
+            .to_list()
+        turn_state = game_state.game_turns[ant_turn.turn_number]
+        return NeuralNetworkExample([self.convert_pos_to_state(pos,ant_turn,turn_state, game_state) for pos in map_positions],
+                                    ant_turn.next_direction)
+
+    def convert_to_nn_input_ant_vision(self, bot_name: str, game_states: List[GameState]) -> NeuralNetworkDataset:
+        examples = [self.convert_to_example_ant_vision(at, gs) \
                     for gs in game_states for gt in gs.game_turns for at in gt.ants.values() \
-                    #if (gt.turn_number <= 5) and at.bot.bot_name == bot_name]
+                    if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
+        return NeuralNetworkDataset(examples)
+
+
+    def convert_to_nn_input_entire_map(self, bot_name: str, game_states: List[GameState]) -> NeuralNetworkDataset:
+        examples = [self.convert_to_example_entire_map(at, gs) \
+                    for gs in game_states for gt in gs.game_turns for at in gt.ants.values() \
                     if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
         return NeuralNetworkDataset(examples)
