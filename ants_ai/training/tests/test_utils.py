@@ -6,7 +6,7 @@ from functional import seq
 from training.game_state.game_state import GameState
 from training.game_state.generator import GameStateGenerator
 from training.neural_network.game_state_translator import GameStateTranslater
-from training.neural_network.neural_network_example import NeuralNetworkExample
+from training.neural_network.neural_network_example import AntVision1DExample
 from training_data_gen.engine.play_result import PlayResult
 import glob
 import multiprocessing as mp
@@ -36,27 +36,29 @@ def create_test_game_state() -> GameState:
     return generator.generate(play_result)
 
 
-def map_to_input(pr: Tuple[str, PlayResult, ExampleType]) -> List[NeuralNetworkExample]:
-    print('Parsing game ' + pr[1].game_id)
+def map_to_input(pr: Tuple[str, PlayResult, ExampleType]) -> List[AntVision1DExample]:
+    bot_name, play_result, type = pr
+    print('Parsing game ' + play_result.game_id)
     generator = GameStateGenerator()
     translator = GameStateTranslater()
-    input = translator.convert_to_nn_input_ant_vision(pr[0], [generator.generate(pr[1])]) if (
-                pr[2] == ExampleType.ANT_VISION) else \
-        translator.convert_to_nn_input_entire_map(pr[0], [generator.generate(pr[1])])
-    # print('Done parsing ' + pr[1].game_id)
+    input = translator.convert_to_1d_ant_vision(bot_name, [generator.generate(play_result)]) if (
+            type == ExampleType.ANT_VISION) else \
+        translator.convert_to_antmap(bot_name, [generator.generate(play_result)])
     return input.examples
 
 
-def create_test_examples(game_count: int, bot_name: str, type: ExampleType) -> List[NeuralNetworkExample]:
+def create_test_play_results(game_count: int, bot_name: str) -> List[PlayResult]:
     files = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
-
     play_results = seq([get_play_result(file) for file in files]) \
         .filter(lambda pr: bot_name in pr.playernames) \
         .take(game_count) \
-        .map(lambda pr: (bot_name, pr, type)) \
         .to_list()
     print(f'Got {len(play_results)} play results!')
+    return play_results
 
+
+def create_test_examples(game_count: int, bot_name: str, type: ExampleType) -> List[AntVision1DExample]:
+    play_results = [(bot_name, pr, type) for pr in create_test_play_results(game_count, bot_name)]
     pool = mp.Pool(mp.cpu_count() - 1)
     results = pool.map(map_to_input, play_results)
     pool.close()

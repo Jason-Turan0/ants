@@ -50,7 +50,7 @@ class TestTournament(unittest.TestCase):
         mapPath = f'{os.getcwd()}\\training_data_gen\\engine\\maps\\training\\small.map'
         tournamentTime = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
         tournamentPath = f'{os.getcwd()}\\generated_data\\{tournamentTime}'
-        tr.generate_game_data(tournamentPath, mapPath, 'memetix', 50)
+        tr.generate_game_data(tournamentPath, mapPath, 'memetix', 100)
 
 
 if __name__ == '__main__':
