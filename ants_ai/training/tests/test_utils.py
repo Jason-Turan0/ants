@@ -5,7 +5,7 @@ import jsonpickle
 from functional import seq
 from training.game_state.game_state import GameState
 from training.game_state.generator import GameStateGenerator
-from training.neural_network.game_state_translator import GameStateTranslater
+from training.neural_network.game_state_translator import GameStateTranslator
 from training.neural_network.neural_network_example import AntVision1DExample
 from training_data_gen.engine.play_result import PlayResult
 import glob
@@ -40,11 +40,17 @@ def map_to_input(pr: Tuple[str, PlayResult, ExampleType]) -> List[AntVision1DExa
     bot_name, play_result, type = pr
     print('Parsing game ' + play_result.game_id)
     generator = GameStateGenerator()
-    translator = GameStateTranslater()
+    translator = GameStateTranslator()
     input = translator.convert_to_1d_ant_vision(bot_name, [generator.generate(play_result)]) if (
             type == ExampleType.ANT_VISION) else \
         translator.convert_to_antmap(bot_name, [generator.generate(play_result)])
     return input.examples
+
+
+def map_to_game_state(pr: PlayResult):
+    gsg = GameStateGenerator()
+    print('Parsing game ' + pr.game_id)
+    return gsg.generate(pr)
 
 
 def create_test_play_results(game_count: int, bot_name: str) -> List[PlayResult]:
@@ -55,6 +61,14 @@ def create_test_play_results(game_count: int, bot_name: str) -> List[PlayResult]
         .to_list()
     print(f'Got {len(play_results)} play results!')
     return play_results
+
+
+def create_test_game_states(game_count: int, bot_name: str) -> List[GameState]:
+    play_results = create_test_play_results(game_count, bot_name)
+    pool = mp.Pool(mp.cpu_count() - 1)
+    game_states = pool.map(map_to_game_state, play_results)
+    pool.close()
+    return game_states
 
 
 def create_test_examples(game_count: int, bot_name: str, type: ExampleType) -> List[AntVision1DExample]:

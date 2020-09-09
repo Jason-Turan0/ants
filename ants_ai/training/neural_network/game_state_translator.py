@@ -6,8 +6,8 @@ from typing import List, Type, TypeVar, Dict, Tuple
 from enum import Enum
 
 from training.game_state.game_turn import GameTurn
-from training.neural_network.neural_network_example import AntVision1DExample, AntMapExample, AntVision2DExample, \
-    AntMapDataset
+from training.neural_network.neural_network_example import AntVision1DExample, AntMapExample, AntVision2DExample
+
 from training.neural_network.position_state import PositionState
 
 TRAINING_VIEW_RADIUS = 77;
@@ -16,7 +16,7 @@ TRAINING_VIEW_SIZE = 241;
 T = TypeVar('T', bound=Enum)
 
 
-class GameStateTranslater:
+class GameStateTranslator:
     def __init__(self):
         self.cached_types: Dict[(Type[T]), Dict[T, List[int]]] = {}
 
@@ -31,7 +31,7 @@ class GameStateTranslater:
             self.cache_enum_type(enum_class)
         return self.cached_types[enum_class].get(enum_val)
 
-    def convert_array_to_enum(int_array: List[int], enum_class: Type[T]) -> T:
+    def convert_array_to_enum(self, int_array: List[int], enum_class: Type[T]) -> T:
         enum_items = enum_class.__members__.items()
         if len(enum_items) != len(int_array): raise ValueError(
             f'array mismatch enumCount: ${len(enum_items)} boolCount:${len(int_array)}')
@@ -53,14 +53,27 @@ class GameStateTranslater:
                                           pos] == TerrainType.WATER else PositionState.LAND
 
     def convert_to_1d_example(self, ant_turn: AntTurn, game_state: GameState) -> AntVision1DExample:
-        ant_vision = seq(game_state.game_map.get_positions_within_distance(ant_turn.position,
-                                                                           game_state.view_radius_squared)) \
-            .filter(lambda p: p != ant_turn.position) \
-            .order_by(lambda p: p) \
-            .to_list()
+        ant_vision = [p for p in game_state.game_map.get_positions_within_distance(ant_turn.position,
+                                                                                   game_state.view_radius_squared)
+                      if p != ant_turn.position]
         turn_state = game_state.game_turns[ant_turn.turn_number]
         return AntVision1DExample(
             [self.convert_pos_to_state(av, ant_turn.bot.bot_name, turn_state, game_state) for av in ant_vision],
+            ant_turn.next_direction)
+
+    def convert_to_2d_example(self, ant_turn: AntTurn, game_state: GameState) -> AntVision2DExample:
+        gm = game_state.game_map
+        atp = ant_turn.position
+        ant_vision = [p for p in gm.get_positions_within_distance(ant_turn.position,
+                                                                  game_state.view_radius_squared,
+                                                                  use_absolute=False,
+                                                                  crop_to_square=True)
+                      ]
+        turn_state = game_state.game_turns[ant_turn.turn_number]
+        return AntVision2DExample(
+            {av: self.convert_pos_to_state(gm.wrap_position(atp.row + av.row, atp.column + av.column),
+                                           ant_turn.bot.bot_name, turn_state, game_state)
+             for av in ant_vision},
             ant_turn.next_direction)
 
     def convert_to_map_example(self, bot_name: str, turn_number, game_state: GameState) -> Dict[
@@ -78,7 +91,13 @@ class GameStateTranslater:
                     if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
         return examples
 
-    def convert_to_antmap(self, bot_name: str, game_states: List[GameState]) -> AntMapDataset:
+    def convert_to_2d_ant_vision(self, bot_name: str, game_states: List[GameState]) -> List[AntVision2DExample]:
+        examples = [self.convert_to_2d_example(at, gs) \
+                    for gs in game_states for gt in gs.game_turns for at in gt.ants.values() \
+                    if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
+        return examples
+
+    def convert_to_antmap(self, bot_name: str, game_states: List[GameState]) -> List[AntMapExample]:
         map_states: Dict[Tuple[str, int], Dict[
             Position, PositionState]] = seq(game_states) \
             .flat_map(lambda gs: seq(gs.game_turns).map(lambda gt: (gs, gt))) \
@@ -86,10 +105,11 @@ class GameStateTranslater:
             .map(
             lambda t: ((t[0].game_id, t[1].turn_number), self.convert_to_map_example(bot_name, t[1].turn_number, t[0]))) \
             .to_dict()
-
-        examples = [AntMapExample(map_states[(gs.game_id, gt.turn_number)], at.next_direction)
-                    for gs in game_states for gt in gs.game_turns for at in gt.ants.values()
-                    if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
         # TODO check all maps in set are identical.
         map = game_states[0].game_map
-        return AntMapDataset(map.row_count, map.column_count, examples)
+        examples = [
+            AntMapExample(map_states[(gs.game_id, gt.turn_number)], at.next_direction, map.row_count, map.column_count)
+            for gs in game_states for gt in gs.game_turns for at in gt.ants.values()
+            if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
+
+        return examples

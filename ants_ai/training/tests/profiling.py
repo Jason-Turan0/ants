@@ -1,10 +1,10 @@
 import cProfile
 from functional import seq
 from training.tests.test_utils import create_test_game_state
-from ants_ai.training.neural_network.game_state_translator import GameStateTranslater
+from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
 
 game_state = create_test_game_state()
-translator = GameStateTranslater()
+translator = GameStateTranslator()
 
 
 def convert_game_state():

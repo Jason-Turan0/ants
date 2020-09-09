@@ -56,5 +56,5 @@ class GameStateGenerator:
             map(lambda turn_number: self.generate_game_turn(turn_number, bots, game_map, play_result),
                 range(0, play_result.game_length)))
         return GameState(play_result.game_id, game_turns, game_map, play_result.replaydata.viewradius2,
-                         bots[play_result.rank[0]], \
+                         bots[play_result.rank[0]],
                          play_result.replaydata.ranking_turn)

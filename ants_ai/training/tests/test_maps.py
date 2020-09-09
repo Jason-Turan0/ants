@@ -65,12 +65,118 @@ class TestMaps(unittest.TestCase):
 
     def test_calculate_vision(self):
         map = self.get_test_map()
-        expected = [Position(row=8, column=26), Position(row=8, column=27), Position(row=8, column=28), Position(row=8, column=29), Position(row=8, column=30), Position(row=8, column=31), Position(row=8, column=32), Position(row=9, column=24), Position(row=9, column=25), Position(row=9, column=26), Position(row=9, column=27), Position(row=9, column=28), Position(row=9, column=29), Position(row=9, column=30), Position(row=9, column=31), Position(row=9, column=32), Position(row=9, column=33), Position(row=9, column=34), Position(row=10, column=23), Position(row=10, column=24), Position(row=10, column=25), Position(row=10, column=26), Position(row=10, column=27), Position(row=10, column=28), Position(row=10, column=29), Position(row=10, column=30), Position(row=10, column=31), Position(row=10, column=32), Position(row=10, column=33), Position(row=10, column=34), Position(row=10, column=35), Position(row=11, column=22), Position(row=11, column=23), Position(row=11, column=24), Position(row=11, column=25), Position(row=11, column=26), Position(row=11, column=27), Position(row=11, column=28), Position(row=11, column=29), Position(row=11, column=30), Position(row=11, column=31), Position(row=11, column=32), Position(row=11, column=33), Position(row=11, column=34), Position(row=11, column=35), Position(row=11, column=36), Position(row=12, column=22), Position(row=12, column=23), Position(row=12, column=24), Position(row=12, column=25), Position(row=12, column=26), Position(row=12, column=27), Position(row=12, column=28), Position(row=12, column=29), Position(row=12, column=30), Position(row=12, column=31), Position(row=12, column=32), Position(row=12, column=33), Position(row=12, column=34), Position(row=12, column=35), Position(row=12, column=36), Position(row=13, column=21), Position(row=13, column=22), Position(row=13, column=23), Position(row=13, column=24), Position(row=13, column=25), Position(row=13, column=26), Position(row=13, column=27), Position(row=13, column=28), Position(row=13, column=29), Position(row=13, column=30), Position(row=13, column=31), Position(row=13, column=32), Position(row=13, column=33), Position(row=13, column=34), Position(row=13, column=35), Position(row=13, column=36), Position(row=13, column=37), Position(row=14, column=21), Position(row=14, column=22), Position(row=14, column=23), Position(row=14, column=24), Position(row=14, column=25), Position(row=14, column=26), Position(row=14, column=27), Position(row=14, column=28), Position(row=14, column=29), Position(row=14, column=30), Position(row=14, column=31), Position(row=14, column=32), Position(row=14, column=33), Position(row=14, column=34), Position(row=14, column=35), Position(row=14, column=36), Position(row=14, column=37), Position(row=15, column=21), Position(row=15, column=22), Position(row=15, column=23), Position(row=15, column=24), Position(row=15, column=25), Position(row=15, column=26), Position(row=15, column=27), Position(row=15, column=28), Position(row=15, column=29), Position(row=15, column=30), Position(row=15, column=31), Position(row=15, column=32), Position(row=15, column=33), Position(row=15, column=34), Position(row=15, column=35), Position(row=15, column=36), Position(row=15, column=37), Position(row=16, column=21), Position(row=16, column=22), Position(row=16, column=23), Position(row=16, column=24), Position(row=16, column=25), Position(row=16, column=26), Position(row=16, column=27), Position(row=16, column=28), Position(row=16, column=29), Position(row=16, column=30), Position(row=16, column=31), Position(row=16, column=32), Position(row=16, column=33), Position(row=16, column=34), Position(row=16, column=35), Position(row=16, column=36), Position(row=16, column=37), Position(row=17, column=21), Position(row=17, column=22), Position(row=17, column=23), Position(row=17, column=24), Position(row=17, column=25), Position(row=17, column=26), Position(row=17, column=27), Position(row=17, column=28), Position(row=17, column=29), Position(row=17, column=30), Position(row=17, column=31), Position(row=17, column=32), Position(row=17, column=33), Position(row=17, column=34), Position(row=17, column=35), Position(row=17, column=36), Position(row=17, column=37), Position(row=18, column=21), Position(row=18, column=22), Position(row=18, column=23), Position(row=18, column=24), Position(row=18, column=25), Position(row=18, column=26), Position(row=18, column=27), Position(row=18, column=28), Position(row=18, column=29), Position(row=18, column=30), Position(row=18, column=31), Position(row=18, column=32), Position(row=18, column=33), Position(row=18, column=34), Position(row=18, column=35), Position(row=18, column=36), Position(row=18, column=37), Position(row=19, column=21), Position(row=19, column=22), Position(row=19, column=23), Position(row=19, column=24), Position(row=19, column=25), Position(row=19, column=26), Position(row=19, column=27), Position(row=19, column=28), Position(row=19, column=29), Position(row=19, column=30), Position(row=19, column=31), Position(row=19, column=32), Position(row=19, column=33), Position(row=19, column=34), Position(row=19, column=35), Position(row=19, column=36), Position(row=19, column=37), Position(row=20, column=22), Position(row=20, column=23), Position(row=20, column=24), Position(row=20, column=25), Position(row=20, column=26), Position(row=20, column=27), Position(row=20, column=28), Position(row=20, column=29), Position(row=20, column=30), Position(row=20, column=31), Position(row=20, column=32), Position(row=20, column=33), Position(row=20, column=34), Position(row=20, column=35), Position(row=20, column=36), Position(row=21, column=22), Position(row=21, column=23), Position(row=21, column=24), Position(row=21, column=25), Position(row=21, column=26), Position(row=21, column=27), Position(row=21, column=28), Position(row=21, column=29), Position(row=21, column=30), Position(row=21, column=31), Position(row=21, column=32), Position(row=21, column=33), Position(row=21, column=34), Position(row=21, column=35), Position(row=21, column=36), Position(row=22, column=23), Position(row=22, column=24), Position(row=22, column=25), Position(row=22, column=26), Position(row=22, column=27), Position(row=22, column=28), Position(row=22, column=29), Position(row=22, column=30), Position(row=22, column=31), Position(row=22, column=32), Position(row=22, column=33), Position(row=22, column=34), Position(row=22, column=35), Position(row=23, column=24), Position(row=23, column=25), Position(row=23, column=26), Position(row=23, column=27), Position(row=23, column=28), Position(row=23, column=29), Position(row=23, column=30), Position(row=23, column=31), Position(row=23, column=32), Position(row=23, column=33), Position(row=23, column=34), Position(row=24, column=26), Position(row=24, column=27), Position(row=24, column=28), Position(row=24, column=29), Position(row=24, column=30), Position(row=24, column=31), Position(row=24, column=32)]
-        within_dist = map.get_positions_within_distance(Position(16, 29), 77)
+        expected = [Position(row=8, column=26), Position(row=8, column=27), Position(row=8, column=28),
+                    Position(row=8, column=29), Position(row=8, column=30), Position(row=8, column=31),
+                    Position(row=8, column=32), Position(row=9, column=24), Position(row=9, column=25),
+                    Position(row=9, column=26), Position(row=9, column=27), Position(row=9, column=28),
+                    Position(row=9, column=29), Position(row=9, column=30), Position(row=9, column=31),
+                    Position(row=9, column=32), Position(row=9, column=33), Position(row=9, column=34),
+                    Position(row=10, column=23), Position(row=10, column=24), Position(row=10, column=25),
+                    Position(row=10, column=26), Position(row=10, column=27), Position(row=10, column=28),
+                    Position(row=10, column=29), Position(row=10, column=30), Position(row=10, column=31),
+                    Position(row=10, column=32), Position(row=10, column=33), Position(row=10, column=34),
+                    Position(row=10, column=35), Position(row=11, column=22), Position(row=11, column=23),
+                    Position(row=11, column=24), Position(row=11, column=25), Position(row=11, column=26),
+                    Position(row=11, column=27), Position(row=11, column=28), Position(row=11, column=29),
+                    Position(row=11, column=30), Position(row=11, column=31), Position(row=11, column=32),
+                    Position(row=11, column=33), Position(row=11, column=34), Position(row=11, column=35),
+                    Position(row=11, column=36), Position(row=12, column=22), Position(row=12, column=23),
+                    Position(row=12, column=24), Position(row=12, column=25), Position(row=12, column=26),
+                    Position(row=12, column=27), Position(row=12, column=28), Position(row=12, column=29),
+                    Position(row=12, column=30), Position(row=12, column=31), Position(row=12, column=32),
+                    Position(row=12, column=33), Position(row=12, column=34), Position(row=12, column=35),
+                    Position(row=12, column=36), Position(row=13, column=21), Position(row=13, column=22),
+                    Position(row=13, column=23), Position(row=13, column=24), Position(row=13, column=25),
+                    Position(row=13, column=26), Position(row=13, column=27), Position(row=13, column=28),
+                    Position(row=13, column=29), Position(row=13, column=30), Position(row=13, column=31),
+                    Position(row=13, column=32), Position(row=13, column=33), Position(row=13, column=34),
+                    Position(row=13, column=35), Position(row=13, column=36), Position(row=13, column=37),
+                    Position(row=14, column=21), Position(row=14, column=22), Position(row=14, column=23),
+                    Position(row=14, column=24), Position(row=14, column=25), Position(row=14, column=26),
+                    Position(row=14, column=27), Position(row=14, column=28), Position(row=14, column=29),
+                    Position(row=14, column=30), Position(row=14, column=31), Position(row=14, column=32),
+                    Position(row=14, column=33), Position(row=14, column=34), Position(row=14, column=35),
+                    Position(row=14, column=36), Position(row=14, column=37), Position(row=15, column=21),
+                    Position(row=15, column=22), Position(row=15, column=23), Position(row=15, column=24),
+                    Position(row=15, column=25), Position(row=15, column=26), Position(row=15, column=27),
+                    Position(row=15, column=28), Position(row=15, column=29), Position(row=15, column=30),
+                    Position(row=15, column=31), Position(row=15, column=32), Position(row=15, column=33),
+                    Position(row=15, column=34), Position(row=15, column=35), Position(row=15, column=36),
+                    Position(row=15, column=37), Position(row=16, column=21), Position(row=16, column=22),
+                    Position(row=16, column=23), Position(row=16, column=24), Position(row=16, column=25),
+                    Position(row=16, column=26), Position(row=16, column=27), Position(row=16, column=28),
+                    Position(row=16, column=29), Position(row=16, column=30), Position(row=16, column=31),
+                    Position(row=16, column=32), Position(row=16, column=33), Position(row=16, column=34),
+                    Position(row=16, column=35), Position(row=16, column=36), Position(row=16, column=37),
+                    Position(row=17, column=21), Position(row=17, column=22), Position(row=17, column=23),
+                    Position(row=17, column=24), Position(row=17, column=25), Position(row=17, column=26),
+                    Position(row=17, column=27), Position(row=17, column=28), Position(row=17, column=29),
+                    Position(row=17, column=30), Position(row=17, column=31), Position(row=17, column=32),
+                    Position(row=17, column=33), Position(row=17, column=34), Position(row=17, column=35),
+                    Position(row=17, column=36), Position(row=17, column=37), Position(row=18, column=21),
+                    Position(row=18, column=22), Position(row=18, column=23), Position(row=18, column=24),
+                    Position(row=18, column=25), Position(row=18, column=26), Position(row=18, column=27),
+                    Position(row=18, column=28), Position(row=18, column=29), Position(row=18, column=30),
+                    Position(row=18, column=31), Position(row=18, column=32), Position(row=18, column=33),
+                    Position(row=18, column=34), Position(row=18, column=35), Position(row=18, column=36),
+                    Position(row=18, column=37), Position(row=19, column=21), Position(row=19, column=22),
+                    Position(row=19, column=23), Position(row=19, column=24), Position(row=19, column=25),
+                    Position(row=19, column=26), Position(row=19, column=27), Position(row=19, column=28),
+                    Position(row=19, column=29), Position(row=19, column=30), Position(row=19, column=31),
+                    Position(row=19, column=32), Position(row=19, column=33), Position(row=19, column=34),
+                    Position(row=19, column=35), Position(row=19, column=36), Position(row=19, column=37),
+                    Position(row=20, column=22), Position(row=20, column=23), Position(row=20, column=24),
+                    Position(row=20, column=25), Position(row=20, column=26), Position(row=20, column=27),
+                    Position(row=20, column=28), Position(row=20, column=29), Position(row=20, column=30),
+                    Position(row=20, column=31), Position(row=20, column=32), Position(row=20, column=33),
+                    Position(row=20, column=34), Position(row=20, column=35), Position(row=20, column=36),
+                    Position(row=21, column=22), Position(row=21, column=23), Position(row=21, column=24),
+                    Position(row=21, column=25), Position(row=21, column=26), Position(row=21, column=27),
+                    Position(row=21, column=28), Position(row=21, column=29), Position(row=21, column=30),
+                    Position(row=21, column=31), Position(row=21, column=32), Position(row=21, column=33),
+                    Position(row=21, column=34), Position(row=21, column=35), Position(row=21, column=36),
+                    Position(row=22, column=23), Position(row=22, column=24), Position(row=22, column=25),
+                    Position(row=22, column=26), Position(row=22, column=27), Position(row=22, column=28),
+                    Position(row=22, column=29), Position(row=22, column=30), Position(row=22, column=31),
+                    Position(row=22, column=32), Position(row=22, column=33), Position(row=22, column=34),
+                    Position(row=22, column=35), Position(row=23, column=24), Position(row=23, column=25),
+                    Position(row=23, column=26), Position(row=23, column=27), Position(row=23, column=28),
+                    Position(row=23, column=29), Position(row=23, column=30), Position(row=23, column=31),
+                    Position(row=23, column=32), Position(row=23, column=33), Position(row=23, column=34),
+                    Position(row=24, column=26), Position(row=24, column=27), Position(row=24, column=28),
+                    Position(row=24, column=29), Position(row=24, column=30), Position(row=24, column=31),
+                    Position(row=24, column=32)]
+        within_dist = map.get_positions_within_distance(Position(16, 29), 77, True)
         self.assertIsNotNone(within_dist)
         print(len(within_dist))
         self.assertEqual(len(expected), len(within_dist))
         for pe in expected:
-            self.assertIsNotNone(seq(within_dist).find(lambda pa: pa == pe), msg=f'Failed to find expected vision ${pe}')
+            self.assertIsNotNone(seq(within_dist).find(lambda pa: pa == pe),
+                                 msg=f'Failed to find expected vision ${pe}')
 
+    def test_calculate_vision_square(self):
+        map = self.get_test_map()
+        expected = [(-6, -6), (-6, -5), (-6, -4), (-6, -3), (-6, -2), (-6, -1), (-6, 0), (-6, 1), (-6, 2), (-6, 3),
+                    (-6, 4), (-6, 5), (-5, -6), (-5, -5), (-5, -4), (-5, -3), (-5, -2), (-5, -1), (-5, 0), (-5, 1),
+                    (-5, 2), (-5, 3), (-5, 4), (-5, 5), (-4, -6), (-4, -5), (-4, -4), (-4, -3), (-4, -2), (-4, -1),
+                    (-4, 0), (-4, 1), (-4, 2), (-4, 3), (-4, 4), (-4, 5), (-3, -6), (-3, -5), (-3, -4), (-3, -3),
+                    (-3, -2), (-3, -1), (-3, 0), (-3, 1), (-3, 2), (-3, 3), (-3, 4), (-3, 5), (-2, -6), (-2, -5),
+                    (-2, -4), (-2, -3), (-2, -2), (-2, -1), (-2, 0), (-2, 1), (-2, 2), (-2, 3), (-2, 4), (-2, 5),
+                    (-1, -6), (-1, -5), (-1, -4), (-1, -3), (-1, -2), (-1, -1), (-1, 0), (-1, 1), (-1, 2), (-1, 3),
+                    (-1, 4), (-1, 5), (0, -6), (0, -5), (0, -4), (0, -3), (0, -2), (0, -1), (0, 0), (0, 1), (0, 2),
+                    (0, 3), (0, 4), (0, 5), (1, -6), (1, -5), (1, -4), (1, -3), (1, -2), (1, -1), (1, 0), (1, 1),
+                    (1, 2), (1, 3), (1, 4), (1, 5), (2, -6), (2, -5), (2, -4), (2, -3), (2, -2), (2, -1), (2, 0),
+                    (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (3, -6), (3, -5), (3, -4), (3, -3), (3, -2), (3, -1),
+                    (3, 0), (3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (4, -6), (4, -5), (4, -4), (4, -3), (4, -2),
+                    (4, -1), (4, 0), (4, 1), (4, 2), (4, 3), (4, 4), (4, 5), (5, -6), (5, -5), (5, -4), (5, -3),
+                    (5, -2), (5, -1), (5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5)]
 
+        within_dist = map.get_positions_within_distance(Position(16, 25), 77, use_absolute=False, crop_to_square=True)
+        self.assertIsNotNone(within_dist)
+        print(len(within_dist))
+
+        print(within_dist)
+        self.assertEqual(len(expected), len(within_dist))
+        for pe in expected:
+            self.assertIsNotNone(seq(within_dist).find(lambda pa: pa == pe),
+                                 msg=f'Failed to find expected vision ${pe}')

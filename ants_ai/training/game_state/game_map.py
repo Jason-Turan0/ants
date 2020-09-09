@@ -56,7 +56,7 @@ class GameMap:
     def get_terrain(self, position: Position) -> TerrainType:
         return self.terrain.get(position)
 
-    def wrap_position(self, new_row, new_col) -> Position:
+    def wrap_position(self, new_row: int, new_col: int) -> Position:
         if new_row >= self.row_count:
             wrapped_row = new_row % self.row_count
         elif new_row < 0:
@@ -76,18 +76,18 @@ class GameMap:
         (row_change, col_change) = self.direction_change[direction]
         return self.wrap_position(position.row + row_change, position.column + col_change)
 
-    def get_positions_within_distance(self, pos: Position, radius_squared: int) -> List[Position]:
-        distance = sqrt(radius_squared)
-        d_ceil = ceil(distance)
-        positions = [self.wrap_position(pos.row+x,pos.column+y) \
-                     for x in range(-d_ceil, d_ceil) for y in range(-d_ceil, d_ceil) \
-                     if Position(pos.row + x,pos.column + y).calculate_distance(pos) < distance]
-        return positions
-
-
-        #return seq(distances) \
-        #    .map(lambda d: Position(pos.row + d[0], pos.column + d[1])) \
-        #    .filter(lambda p: p.calculate_distance(pos) < distance) \
-        #    .map(lambda p: self.wrap_position(p.row, p.column)) \
-        #    .order_by(lambda p: p) \
-        #    .list()
+    def get_positions_within_distance(self, pos: Position, radius_squared: int, use_absolute: bool = True,
+                                      crop_to_square: bool = False) -> List[
+        Position]:
+        radius = sqrt(radius_squared)
+        if crop_to_square:
+            d_ceil = floor(sqrt((radius ** 2) / 2))
+            positions = [self.wrap_position(pos.row + x, pos.column + y) if use_absolute else Position(x, y) \
+                         for x in range(-d_ceil, d_ceil) for y in range(-d_ceil, d_ceil)]
+            return positions
+        else:
+            d_ceil = ceil(radius)
+            positions = [self.wrap_position(pos.row + x, pos.column + y) if use_absolute else Position(x, y) \
+                         for x in range(-d_ceil, d_ceil) for y in range(-d_ceil, d_ceil) \
+                         if Position(pos.row + x, pos.column + y).calculate_distance(pos) < radius]
+            return positions

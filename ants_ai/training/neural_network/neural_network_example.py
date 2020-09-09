@@ -17,13 +17,8 @@ class AntVision2DExample:
 
 
 class AntMapExample:
-    def __init__(self, features: Dict[Position, PositionState], label: Direction):
-        self.features = features
-        self.label = label
-
-
-class AntMapDataset:
-    def __init__(self, row_count: int, column_count: int, examples: List[AntMapExample]):
-        self.examples = examples
+    def __init__(self, features: Dict[Position, PositionState], label: Direction, row_count: int, column_count: int):
         self.column_count = column_count
         self.row_count = row_count
+        self.features = features
+        self.label = label
