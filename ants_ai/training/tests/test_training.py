@@ -41,7 +41,7 @@ class TestTraining(unittest.TestCase):
         (train, cross_val) = ms.encode_game_states(game_states)
         fit = ms.model.fit(train.features, train.labels,
                            validation_data=(cross_val.features, cross_val.labels),
-                           epochs=10,
+                           epochs=50,
                            batch_size=10, callbacks=callbacks)
 
     # @unittest.skip('Integration test')
@@ -49,14 +49,23 @@ class TestTraining(unittest.TestCase):
         bot_to_emulate = 'memetix_1'
         # examples = create_test_examples(2, bot_to_emulate, ExampleType.ANT_VISION)
 
-        game_states = create_test_game_states(5, bot_to_emulate)
+        game_states = create_test_game_states(100, bot_to_emulate)
 
         models = [
-            mf.create_dense_2d_model(0.0005, 1, bot_to_emulate),
-            # mf.create_conv_2d_model(0.001, bot_to_emulate),
-            # mf.create_conv_2d_model(0.002, bot_to_emulate),
-            # mf.create_conv_2d_model(0.01, bot_to_emulate),
+            mf.create_dense_2d_model(0.0005, bot_to_emulate),
+            mf.create_dense_2d_model(0.001, bot_to_emulate),
+            mf.create_dense_2d_model(0.002, bot_to_emulate),
+            mf.create_dense_2d_model(0.01, bot_to_emulate),
 
+            mf.create_conv_2d_model(0.0005, 1, bot_to_emulate),
+            mf.create_conv_2d_model(0.001, 1, bot_to_emulate),
+            mf.create_conv_2d_model(0.002, 1, bot_to_emulate),
+            mf.create_conv_2d_model(0.01, 1, bot_to_emulate),
+
+            mf.create_conv_2d_model(0.0005, 2, bot_to_emulate),
+            mf.create_conv_2d_model(0.001, 2, bot_to_emulate),
+            mf.create_conv_2d_model(0.002, 2, bot_to_emulate),
+            mf.create_conv_2d_model(0.01, 2, bot_to_emulate),
         ]
         for model in models:
             self.train_model(game_states, model)
