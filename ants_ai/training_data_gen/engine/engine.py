@@ -9,7 +9,7 @@ import json
 import io
 from uuid import uuid4
 from typing import List
-from ants_ai.training_data_gen.engine.bot import Bot
+from ants_ai.training_data_gen.engine.bot import BotName, Bot
 from ants_ai.training_data_gen.engine.play_result import PlayResult
 from functional import seq
 
@@ -18,8 +18,6 @@ from ants_ai.training_data_gen.engine.replay_data import ReplayData
 if sys.version_info >= (3,):
     def unicode(s):
         return s
-
-from ants_ai.training_data_gen.engine.memorysandbox import get_sandbox
 
 
 class HeadTail(object):
@@ -72,15 +70,15 @@ class HeadTail(object):
         return self.capture_head + sep + self.capture_tail
 
 
-def run_game(game, botPlayers: List[Bot], options, gateway):
+def run_game(game, bots: List[Bot], options):
     # file descriptors for replay and streaming formats
     replay_log = options.get('replay_log', None)
     stream_log = options.get('stream_log', None)
     verbose_log = options.get('verbose_log', None)
     # file descriptors for bots, should be list matching # of bots
-    input_logs = options.get('input_logs', [None] * len(botPlayers))
-    output_logs = options.get('output_logs', [None] * len(botPlayers))
-    error_logs = options.get('error_logs', [None] * len(botPlayers))
+    input_logs = options.get('input_logs', [None] * len(bots))
+    output_logs = options.get('output_logs', [None] * len(bots))
+    error_logs = options.get('error_logs', [None] * len(bots))
 
     capture_errors = options.get('capture_errors', False)
     capture_errors_max = options.get('capture_errors_max', 510)
@@ -96,34 +94,15 @@ def run_game(game, botPlayers: List[Bot], options, gateway):
 
     error = ''
 
-    bots = []
     bot_status = []
     bot_turns = []
     ant_counts = []
     if capture_errors:
         error_logs = [HeadTail(log, capture_errors_max) for log in error_logs]
     try:
-        for botIndex, bot in enumerate(botPlayers):
-            sandbox = get_sandbox(game_id, bot.bot_name, bot.bot_type, gateway)
-            bots.append(sandbox)
+        for botIndex, bot in enumerate(bots):
             bot_status.append('survived')
             bot_turns.append(0)
-
-            # ensure it started
-            if not sandbox.is_alive:
-                bot_status[-1] = 'crashed 0'
-                bot_turns[-1] = 0
-                if verbose_log:
-                    verbose_log.write('bot %s did not start\n' % b)
-                game.kill_player(b)
-            sandbox.pause()
-
-        if stream_log:
-            stream_log.write(game.get_player_start())
-            stream_log.flush()
-
-        if verbose_log:
-            verbose_log.write('running for %s turns\n' % turns)
 
         for turn in range(turns + 1):
             if turn == 0:
@@ -140,7 +119,7 @@ def run_game(game, botPlayers: List[Bot], options, gateway):
                     else:
                         # state = 'turn ' + str(turn) + '\n' + game.get_player_state(b) + 'go\n'
                         state = game.get_player_state(b)
-                        bot.playTurn(state)
+                        bot.play_turn(state)
                         if input_logs and input_logs[b]:
                             input_logs[b].write(state)
                             input_logs[b].flush()
@@ -306,8 +285,6 @@ def run_game(game, botPlayers: List[Bot], options, gateway):
                 if input_logs and input_logs[b]:
                     input_logs[b].write(state)
                     input_logs[b].flush()
-
-
     finally:
         if end_wait:
             for bot in bots:
@@ -335,7 +312,7 @@ def run_game(game, botPlayers: List[Bot], options, gateway):
             replay,
             scores,
             bot_status,
-            list(map(lambda b: b.bot_name, botPlayers)),
+            list(map(lambda b: b.name.bot_name, bots)),
             ant_counts
         )
         return pr

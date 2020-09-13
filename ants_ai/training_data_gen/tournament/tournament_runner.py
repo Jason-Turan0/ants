@@ -11,11 +11,13 @@ from functional import seq
 import ants_ai.training_data_gen.engine.visualizer.visualize_locally
 from ants_ai.training_data_gen.engine import visualizer
 from ants_ai.training_data_gen.engine.ants import Ants
-from ants_ai.training_data_gen.engine.bot import Bot
+from ants_ai.training_data_gen.engine.bot import BotName
 from ants_ai.training_data_gen.engine.engine import run_game
 from ants_ai.training_data_gen.engine.play_result import PlayResult
 from typing import List, Tuple
 import os
+
+from training_data_gen.engine.java_bot import JavaBot
 
 
 class TournamentRunner:
@@ -23,7 +25,7 @@ class TournamentRunner:
         self.gateway = gateway
         self.all_bots = ['hippo', 'lazarant', 'xathis', 'speedyBot', 'memetix', 'pkmiec']
 
-    def play_game(self, bot0: Bot, bot1: Bot, mapPath: str) -> PlayResult:
+    def play_game(self, bot0: BotName, bot1: BotName, mapPath: str) -> PlayResult:
         turns = 200
         loadtime = 3000
         turntime = 1000
@@ -70,9 +72,10 @@ class TournamentRunner:
         }
         with open(mapPath, 'r') as map_file:
             game_options['map'] = map_file.read()
-
+        game_id = engine_options.get('game_id', 0)
         game = Ants(game_options)
-        return run_game(game, [bot0, bot1], engine_options, self.gateway)
+        return run_game(game, [JavaBot(game_id, self.gateway, bot0), JavaBot(game_id, self.gateway, bot1)],
+                        engine_options)
 
         # if engine_options['replay_log']:
         #    intcpt_replay_io = StringIO()
@@ -99,7 +102,7 @@ class TournamentRunner:
         print(f'Playing {len(game_settings)} games')
 
         playResults: List[PlayResult] = seq(game_settings).map(
-            lambda tuple: self.play_game(Bot(tuple[0]), Bot(tuple[1]), map_path)).list()
+            lambda tuple: self.play_game(BotName(tuple[0]), BotName(tuple[1]), map_path)).list()
 
         os.makedirs(tournament_directory)
         for pr in playResults:
@@ -109,9 +112,9 @@ class TournamentRunner:
             generate_visualization(replay_path, html_path)
 
         def sumTournamentScore(botType: str):
-            bot = Bot(botType)
+            bot = BotName(botType)
 
-            def determine_score(bot: Bot, pr: PlayResult):
+            def determine_score(bot: BotName, pr: PlayResult):
                 botIndex = pr.playernames.index(bot.bot_name)
                 otherBotIndex = 1 if botIndex == 0 else 0
                 if pr.score[botIndex] == pr.score[otherBotIndex]: return 1

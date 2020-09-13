@@ -1,8 +1,9 @@
 from math import floor
 from pprint import pprint
 from random import random, shuffle
-from typing import List, Tuple, Callable, Dict
+from typing import List, Tuple, Callable, Dict, Union
 
+from numpy.core.multiarray import ndarray
 from training.game_state.game_state import GameState
 from training.game_state.generator import GameStateGenerator
 from training.neural_network.encoders import TrainingDataset, encode_1d_examples, encode_2d_examples, \
@@ -10,7 +11,7 @@ from training.neural_network.encoders import TrainingDataset, encode_1d_examples
 from tensorflow.python.keras import Sequential, Model, Input
 from tensorflow.python.keras.layers import Dropout, Flatten, Conv1D, concatenate, Conv2D, MaxPooling2D
 from training.neural_network.game_state_translator import GameStateTranslator
-from training.neural_network.neural_network_example import AntVision2DExample
+from training.neural_network.neural_network_example import AntVision2DExample, AntMapExample
 from training.tests.test_utils import create_test_play_results
 import tensorflow as tf
 import datetime
@@ -21,7 +22,7 @@ from tensorflow.keras.layers import Dense
 class ModelSettings:
     def __init__(self, model: Model, model_name: str,
                  game_state_encoder: Callable[[List[GameState]], Tuple[TrainingDataset, TrainingDataset]],
-                 model_params: Dict[str, float]):
+                 model_params: Dict[str, Union[float, int]]):
         self.model_name = model_name
         self.game_state_encoder = game_state_encoder
         self.model = model
@@ -64,12 +65,12 @@ def create_test_examples(bot_name: str, translator_method_name: str, game_states
     return examples
 
 
-def create_game_state_2d_encoder(bot_name: str):
+def create_game_state_2d_encoder(bot_name: str, number_of_channels: int):
     def game_state_encoder(game_states: List[GameState]) -> Tuple[TrainingDataset, TrainingDataset]:
         examples: List[AntVision2DExample] = create_test_examples(bot_name, 'convert_to_2d_ant_vision', game_states)
         (train_examples, cv_examples) = shuffle_and_split(examples)
-        train_data = encode_2d_examples(train_examples)
-        cv_data = encode_2d_examples(cv_examples)
+        train_data = encode_2d_examples(train_examples, number_of_channels)
+        cv_data = encode_2d_examples(cv_examples, number_of_channels)
         return train_data, cv_data
 
     return game_state_encoder
@@ -77,16 +78,13 @@ def create_game_state_2d_encoder(bot_name: str):
 
 # Helpful link
 # https://www.quora.com/How-can-I-calculate-the-size-of-output-of-convolutional-layer
-def create_conv_2d_model(learning_rate: float, strides: int, bot_name: str) -> ModelSettings:
+def create_conv_2d_model(learning_rate: float, strides: int, bot_name: str, number_of_channels: int) -> ModelSettings:
     model = Sequential([
         Input(name='Input',
-              shape=(12, 12, 7)),
+              shape=(12, 12, number_of_channels)),
         Conv2D(32, 2, strides=strides, activation=tf.nn.relu, name='Conv2D_1_32'),
-        # MaxPooling2D(pool_size=(2, 2), name='MaxPooling2D_1', padding="same"),
         Conv2D(64, 3, strides=strides, activation=tf.nn.relu, name='Conv2D_2_64'),
-        # MaxPooling2D(pool_size=(2, 2), name='MaxPooling2D_2', padding="same"),
         Conv2D(128, 2, strides=strides, activation=tf.nn.relu, name='Conv2D_3_128'),
-        # MaxPooling2D(pool_size=(2, 2), name='MaxPooling2D_3', padding="same"),
         Flatten(name='Flatten'),
         Dropout(0.1, name='Dropout'),
         Dense(64, activation=tf.nn.relu, name='dense'),
@@ -97,8 +95,8 @@ def create_conv_2d_model(learning_rate: float, strides: int, bot_name: str) -> M
     model.compile(optimizer=opt,
                   loss=loss_fn,
                   metrics=[tf.keras.metrics.categorical_accuracy])
-    return ModelSettings(model, f'conv_2d', create_game_state_2d_encoder(bot_name),
-                         {'strides': strides, 'learning_rate': learning_rate})
+    return ModelSettings(model, f'conv_2d', create_game_state_2d_encoder(bot_name, number_of_channels),
+                         {'strides': strides, 'learning_rate': learning_rate, 'number_of_channels': number_of_channels})
 
 
 def create_dense_2d_model(learning_rate: float, bot_name: str):
@@ -116,66 +114,45 @@ def create_dense_2d_model(learning_rate: float, bot_name: str):
     return ModelSettings(model, 'dense_2d', create_game_state_2d_encoder(bot_name), {'learning_rate': learning_rate})
 
 
-def create_hybrid_model(bot_name):
-    play_results = create_test_play_results(1, bot_name)
-    generator = GameStateGenerator()
-    translator = GameStateTranslator()
-    game_states = [generator.generate(pr) for pr in play_results]
-    examples_1d = translator.convert_to_1d_ant_vision(bot_name, game_states)
-    examples_map = translator.convert_to_antmap(bot_name, game_states)
+def create_hybrid_model(learning_rate: float, strides: int, bot_name: str, channel_count: int):
+    input_ant_view = Input(shape=(12, 12, channel_count), name='input_ant_view')
+    avm = Conv2D(32, 2, strides=strides, activation=tf.nn.relu, name='Conv2D_av1_32')(input_ant_view)
+    avm = Conv2D(64, 3, strides=strides, activation=tf.nn.relu, name='Conv2D_av2_64')(avm)
+    avm = Conv2D(128, 2, strides=strides, activation=tf.nn.relu, name='Conv2D_av3_128')(avm)
+    avm = Flatten(name='Flatten_av')(avm)
+    avm = Dense(64, activation=tf.nn.relu, name='Dense_av')(avm)
+    avm = Model(inputs=input_ant_view, outputs=avm)
 
-    combined = [(examples_1d[i], examples_map.examples[i]) for i in range(len(examples_1d))]
-    shuffle(combined)
-    train_cutoff = floor(len(combined) * .70)
-    train_examples = combined[0:train_cutoff]
-    cv_examples = combined[train_cutoff:]
+    input_map_view = Input(shape=(43, 39, channel_count), name='input_map_view')
+    mvm = MaxPooling2D(2, name='MaxPool_mv')(input_map_view)
+    mvm = Conv2D(32, 2, strides=strides, activation=tf.nn.relu, name='Conv2D_mv1_32')(mvm)
+    mvm = Conv2D(64, 3, strides=strides, activation=tf.nn.relu, name='Conv2D_mv2_64')(mvm)
+    mvm = Conv2D(128, 2, strides=strides, activation=tf.nn.relu, name='Conv2D_mv3_128')(mvm)
+    mvm = Flatten(name='Flatten_mv')(mvm)
+    mvm = Dense(64, activation=tf.nn.relu, name='Dense_wmv')(mvm)
+    mvm = Model(inputs=input_map_view, outputs=mvm)
+    combined = concatenate([avm.output, mvm.output])
+    output = Dense(5, activation=tf.nn.softmax)(combined)
+    model = Model(inputs=[avm.input, mvm.input], outputs=output)
+    print_layers(model)
 
-    av_encoded_train = encode_1d_examples([y[0] for y in train_examples])
-    map_encoded_train = encode_map_examples(examples_map.row_count, examples_map.column_count,
-                                            [y[1] for y in train_examples])
-
-    av_encoded_cv = encode_1d_examples([y[0] for y in cv_examples])
-    map_encoded_cv = encode_map_examples(examples_map.row_count, examples_map.column_count,
-                                         [y[1] for y in cv_examples])
-
-    print(av_encoded_train.features.shape)
-    print(map_encoded_train.features.shape)
-
-    # define two sets of inputs
-    inputA = Input(shape=(av_encoded_train.features.shape[1], av_encoded_train.features.shape[2]))
-    inputB = Input(
-        shape=(map_encoded_train.features.shape[1], map_encoded_train.features.shape[2],
-               map_encoded_train.features.shape[3]))
-    # the first branch operates on the first input
-    x = Dense(8, activation="relu")(inputA)
-    x = Flatten()(x)
-    x = Dense(4, activation="relu")(x)
-    x = Model(inputs=inputA, outputs=x)
-    # the second branch operates on the second input
-    y = Dense(64, activation="relu")(inputB)
-    y = Dense(32, activation="relu")(y)
-    y = Flatten()(y)
-    y = Dense(4, activation="relu")(y)
-    y = Model(inputs=inputB, outputs=y)
-    # combine the output of the two branches
-    combined = concatenate([x.output, y.output])
-    z = Dense(av_encoded_train.labels.shape[1], activation=tf.nn.softmax)(combined)
-    # our model will accept the inputs of the two branches and
-    # then output a single value
-    model = Model(inputs=[x.input, y.input], outputs=z)
-    for i, l in enumerate(model.layers):
-        print(f'Layer {l.name}')
-        print(f'In {l.input_shape}')
-        print(f'Out {l.output_shape}')
     loss_fn = tf.keras.losses.CategoricalCrossentropy()
-    opt = tf.keras.optimizers.Adam()
-    log_dir = f'logs/fit/hybrid_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}'
+    opt = tf.keras.optimizers.Adam(learning_rate=learning_rate)
     model.compile(optimizer=opt,
                   loss=loss_fn,
                   metrics=[tf.keras.metrics.categorical_accuracy])
-    callbacks = [tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)]
-    model.fit(
-        x=[av_encoded_train.features, map_encoded_train.features], y=av_encoded_train.labels,
-        callbacks=callbacks,
-        validation_data=([av_encoded_cv.features, map_encoded_cv.features], av_encoded_cv.labels),
-        epochs=50, batch_size=10)
+
+    def encoder(game_states: List[GameState]) -> Tuple[TrainingDataset, TrainingDataset]:
+        examples_2d: List[AntVision2DExample] = create_test_examples(bot_name, 'convert_to_2d_ant_vision', game_states)
+        examples_map: List[AntMapExample] = create_test_examples(bot_name, 'convert_to_antmap', game_states)
+        combined = [(examples_2d[i], examples_map[i]) for i in range(len(examples_2d))]
+        (train_examples, cv_examples) = shuffle_and_split(combined)
+        av_encoded_train = encode_2d_examples([y[0] for y in train_examples], channel_count)
+        map_encoded_train = encode_map_examples([y[1] for y in train_examples], channel_count)
+        av_encoded_cv = encode_2d_examples([y[0] for y in cv_examples], channel_count)
+        map_encoded_cv = encode_map_examples([y[1] for y in cv_examples], channel_count)
+        return (TrainingDataset([av_encoded_train.features, map_encoded_train.features], av_encoded_train.labels),
+                TrainingDataset([av_encoded_cv.features, map_encoded_cv.features], av_encoded_cv.labels))
+
+    return ModelSettings(model, f'hybrid_2d', encoder,
+                         {'learning_rate': learning_rate, 'strides': strides, 'channel_count': channel_count})

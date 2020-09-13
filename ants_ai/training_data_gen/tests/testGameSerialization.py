@@ -1,8 +1,9 @@
 import unittest
 from ants_ai.training_data_gen.engine.play_result import PlayResult
-from ants_ai.training_data_gen.engine.bot import Bot
+from ants_ai.training_data_gen.engine.bot import BotName
 import os
 import jsonpickle
+
 
 class SerializationTests(unittest.TestCase):
 
@@ -15,9 +16,9 @@ class SerializationTests(unittest.TestCase):
         self.assertEqual(playResult.game_length, 500)
 
     def test_SimpleJsonPickle(self):
-        b = Bot('foo', 'bar')
+        b = BotName('foo', 'bar')
         frozenBot = jsonpickle.encode(b)
-        thawedBot: Bot = jsonpickle.decode(frozenBot)
+        thawedBot: BotName = jsonpickle.decode(frozenBot)
         self.assertEqual(b, thawedBot)
 
 

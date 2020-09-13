@@ -2,7 +2,7 @@ from ants_ai.training_data_gen.engine.play_result import PlayResult
 import unittest
 from ants_ai.training_data_gen.tournament.tournament_runner import TournamentRunner, save_play_result, \
     generate_visualization
-from ants_ai.training_data_gen.engine.bot import Bot
+from ants_ai.training_data_gen.engine.bot import BotName
 from tempfile import mkdtemp
 from py4j.java_gateway import JavaGateway
 import os
@@ -13,9 +13,9 @@ class TestTournament(unittest.TestCase):
     def runGame(self) -> PlayResult:
         tr = TournamentRunner(JavaGateway())
         mapPath = f'{os.getcwd()}\\training_data_gen\\engine\\maps\\training\\small.map'
-        return tr.play_game(Bot('hippo'), Bot('lazarant'), mapPath)
+        return tr.play_game(BotName('hippo'), BotName('lazarant'), mapPath)
 
-    @unittest.skip('Integration test')
+    # @unittest.skip('Integration test')
     def test_rungame(self):
         self.assertIsNotNone(self.runGame())
 
@@ -45,12 +45,13 @@ class TestTournament(unittest.TestCase):
         tournamentPath = f'{os.getcwd()}\\tournaments\\{tournamentTime}'
         tr.run_tournament(tournamentPath, mapPath)
 
+    @unittest.skip('Integration test')
     def test_generate_data(self):
         tr = TournamentRunner(JavaGateway())
         mapPath = f'{os.getcwd()}\\training_data_gen\\engine\\maps\\training\\small.map'
         tournamentTime = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
         tournamentPath = f'{os.getcwd()}\\generated_data\\{tournamentTime}'
-        tr.generate_game_data(tournamentPath, mapPath, 'memetix', 100)
+        tr.generate_game_data(tournamentPath, mapPath, 'memetix', 200)
 
 
 if __name__ == '__main__':

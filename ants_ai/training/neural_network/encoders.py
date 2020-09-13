@@ -1,5 +1,5 @@
 from pprint import pprint
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy
 from functional import seq
@@ -13,7 +13,7 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 class TrainingDataset:
-    def __init__(self, features: ndarray, labels: ndarray):
+    def __init__(self, features: Union[ndarray, List[ndarray]], labels: ndarray):
         self.features = features
         self.labels = labels
 
@@ -43,16 +43,28 @@ def encode_1d_examples(examples: List[AntVision1DExample]) -> TrainingDataset:
     return TrainingDataset(features, labels)
 
 
-def encode_2d_examples(examples: List[AntVision2DExample]) -> TrainingDataset:
+def down_sample(gst: GameStateTranslator, ps: PositionState, channel_count: int):
+    if channel_count == 7:
+        return gst.convert_enum_to_array(ps, PositionState)
+    elif channel_count == 3:
+        if ps == PositionState.FRIENDLY_ANT or ps == PositionState.FRIENDLY_HILL:
+            return [1, 0, 0]
+        elif ps == PositionState.HOSTILE_ANT or ps == PositionState.HOSTILE_HILL:
+            return [0, 1, 0]
+        elif ps == PositionState.FOOD:
+            return [0, 0, 1]
+        else:
+            return [0, 0, 0]
+    else:
+        raise ValueError('Not implemented')
+
+
+def encode_2d_examples(examples: List[AntVision2DExample], channel_count: int) -> TrainingDataset:
     gst = GameStateTranslator()
     e = examples[0]
     rows = seq(e.features.keys()).group_by(lambda p: p.row).map(lambda t: t[0]).order_by(lambda r: r).to_list()
     columns = seq(e.features.keys()).group_by(lambda p: p.column).map(lambda t: t[0]).order_by(lambda c: c).to_list()
-    channel_count = len(PositionState.__members__)
     features = numpy.zeros([len(examples), len(rows), len(columns), channel_count], dtype=int)
-    # pprint(rows)
-    # pprint(columns)
-
     for e_index, e in enumerate(examples):
         for r_index, r in enumerate(rows):
             for c_index, c in enumerate(columns):
@@ -61,19 +73,21 @@ def encode_2d_examples(examples: List[AntVision2DExample]) -> TrainingDataset:
                     print(key)
                     pprint(e.features)
                     raise ValueError('invalid example')
-                features[e_index, r_index, c_index] = gst.convert_enum_to_array(e.features[key],
-                                                                                PositionState)
+                features[e_index, r_index, c_index] = down_sample(gst, e.features[key], channel_count)
 
     labels = [gst.convert_enum_to_array(ex.label, Direction) for ex in examples]
     return TrainingDataset(features, numpy.array(labels))
 
 
-def encode_map_examples(row_count: int, column_count: int, examples: List[AntMapExample]) -> TrainingDataset:
-    t = GameStateTranslator()
-    features = []
-    for e in examples:
-        encoded_example = [[t.convert_enum_to_array(e.features[Position(row, col)], PositionState) for col in
-                            range(column_count)] for row in range(row_count)]
-        features.append(encoded_example)
-    labels = [t.convert_enum_to_array(ex.label, Direction) for ex in examples]
+def encode_map_examples(examples: List[AntMapExample], channel_count: int) -> TrainingDataset:
+    gst = GameStateTranslator()
+    assert (len(examples) > 0)
+    ex = examples[0]
+    features = numpy.zeros([len(examples), ex.row_count, ex.column_count, channel_count], dtype=int)
+    for e_index, e in enumerate(examples):
+        for r in range(ex.row_count):
+            for c in range(ex.column_count):
+                key = Position(r, c)
+                features[e_index, r, c] = down_sample(gst, e.features[key], channel_count)
+    labels = [gst.convert_enum_to_array(ex.label, Direction) for ex in examples]
     return TrainingDataset(numpy.array(features), numpy.array(labels))
