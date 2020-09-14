@@ -1,6 +1,6 @@
 import unittest
-from ants_ai.training_data_gen.engine.play_result import PlayResult
-from ants_ai.training_data_gen.engine.bot import BotName
+from ants_ai.engine.play_result import PlayResult
+from ants_ai.engine.bot import BotName
 import os
 import jsonpickle
 

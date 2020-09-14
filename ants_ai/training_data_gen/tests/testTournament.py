@@ -1,8 +1,8 @@
-from ants_ai.training_data_gen.engine.play_result import PlayResult
+from ants_ai.engine.play_result import PlayResult
 import unittest
 from ants_ai.training_data_gen.tournament.tournament_runner import TournamentRunner, save_play_result, \
     generate_visualization
-from ants_ai.training_data_gen.engine.bot import BotName
+from ants_ai.engine.bot import BotName
 from tempfile import mkdtemp
 from py4j.java_gateway import JavaGateway
 import os
@@ -12,10 +12,10 @@ from datetime import datetime
 class TestTournament(unittest.TestCase):
     def runGame(self) -> PlayResult:
         tr = TournamentRunner(JavaGateway())
-        mapPath = f'{os.getcwd()}\\training_data_gen\\engine\\maps\\training\\small.map'
+        mapPath = f'{os.getcwd()}\\engine\\maps\\training\\small.map'
         return tr.play_game(BotName('hippo'), BotName('lazarant'), mapPath)
 
-    # @unittest.skip('Integration test')
+    @unittest.skip('Integration test')
     def test_rungame(self):
         self.assertIsNotNone(self.runGame())
 

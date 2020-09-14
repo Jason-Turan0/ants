@@ -1,7 +1,7 @@
 from typing import List
 from ants_ai.training.game_state.game_turn import GameTurn
 from training.game_state.game_map import GameMap
-from training_data_gen.engine.bot import BotName
+from engine.bot import BotName
 
 
 class GameState:

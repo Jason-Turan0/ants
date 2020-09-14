@@ -3,7 +3,7 @@ import unittest
 from functional import seq
 from training.game_state.game_map import TerrainType, Position, Direction, GameMap
 from training.tests.test_utils import get_test_play_result
-from training_data_gen.engine.map_data import MapData
+from ants_ai.engine.map_data import MapData
 
 
 class TestMaps(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestMaps(unittest.TestCase):
             return GameMap(MapData(cols, map_data, rows))
 
     def get_test_map(self) -> GameMap:
-        return self.get_map(f'{os.getcwd()}\\training_data_gen\\engine\\maps\\training\\forage_0.map')
+        return self.get_map(f'{os.getcwd()}\\engine\\maps\\training\\forage_0.map')
 
     def test_construct_map(self):
         play_result = get_test_play_result()
@@ -178,5 +178,5 @@ class TestMaps(unittest.TestCase):
         print(within_dist)
         self.assertEqual(len(expected), len(within_dist))
         for pe in expected:
-            self.assertIsNotNone(seq(within_dist).find(lambda pa: pa == pe),
+            self.assertIsNotNone(seq(within_dist).find(lambda pa: pa.row == pe[0] and pa.column == pe[1]),
                                  msg=f'Failed to find expected vision ${pe}')

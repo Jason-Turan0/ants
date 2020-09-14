@@ -1,4 +1,4 @@
-from ants_ai.training_data_gen.engine.map_data import MapData
+from ants_ai.engine.map_data import MapData
 from typing import List, Any
 
 

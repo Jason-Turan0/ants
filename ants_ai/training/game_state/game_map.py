@@ -1,6 +1,6 @@
 import math
 from math import sqrt, ceil, floor
-from training_data_gen.engine.map_data import MapData
+from ants_ai.engine.map_data import MapData
 from functional import seq
 from enum import Enum
 from typing import Dict, List

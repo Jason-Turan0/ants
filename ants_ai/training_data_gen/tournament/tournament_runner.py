@@ -8,16 +8,16 @@ from uuid import uuid4
 import jsonpickle
 from functional import seq
 
-import ants_ai.training_data_gen.engine.visualizer.visualize_locally
-from ants_ai.training_data_gen.engine import visualizer
-from ants_ai.training_data_gen.engine.ants import Ants
-from ants_ai.training_data_gen.engine.bot import BotName
-from ants_ai.training_data_gen.engine.engine import run_game
-from ants_ai.training_data_gen.engine.play_result import PlayResult
+import ants_ai.engine.visualizer.visualize_locally
+from ants_ai.engine import visualizer
+from ants_ai.engine.ants import Ants
+from ants_ai.engine.bot import BotName
+from ants_ai.engine.engine import run_game
+from ants_ai.engine.play_result import PlayResult
 from typing import List, Tuple
 import os
 
-from training_data_gen.engine.java_bot import JavaBot
+from ants_ai.engine.java_bot import JavaBot
 
 
 class TournamentRunner:

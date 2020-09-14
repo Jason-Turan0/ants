@@ -1,5 +1,5 @@
 from training.game_state.game_map import Position, Direction
-from training_data_gen.engine.bot import BotName
+from engine.bot import BotName
 
 
 class AntTurn:

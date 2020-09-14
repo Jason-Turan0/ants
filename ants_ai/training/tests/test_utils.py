@@ -7,7 +7,7 @@ from training.game_state.game_state import GameState
 from training.game_state.generator import GameStateGenerator
 from training.neural_network.game_state_translator import GameStateTranslator
 from training.neural_network.neural_network_example import AntVision1DExample
-from training_data_gen.engine.play_result import PlayResult
+from ants_ai.engine.play_result import PlayResult
 import glob
 import multiprocessing as mp
 from enum import Enum

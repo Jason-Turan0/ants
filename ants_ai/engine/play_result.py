@@ -1,5 +1,5 @@
 from typing import List
-from ants_ai.training_data_gen.engine.replay_data import ReplayData
+from ants_ai.engine.replay_data import ReplayData
 
 
 class PlayResult:

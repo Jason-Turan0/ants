@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from training_data_gen.engine.bot_name import BotName
+from engine.bot_name import BotName
 
 
 class Bot:
@@ -19,7 +19,7 @@ class Bot:
     @abstractmethod
     def read_lines(self):
         pass
-    
+
     @property
     def is_alive(self):
         return True

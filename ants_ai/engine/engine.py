@@ -9,11 +9,11 @@ import json
 import io
 from uuid import uuid4
 from typing import List
-from ants_ai.training_data_gen.engine.bot import BotName, Bot
-from ants_ai.training_data_gen.engine.play_result import PlayResult
+from ants_ai.engine.bot import BotName, Bot
+from ants_ai.engine.play_result import PlayResult
 from functional import seq
 
-from ants_ai.training_data_gen.engine.replay_data import ReplayData
+from ants_ai.engine.replay_data import ReplayData
 
 if sys.version_info >= (3,):
     def unicode(s):

@@ -1,5 +1,5 @@
 {
-  "py/object": "ants_ai.training_data_gen.engine.play_result.PlayResult",
+  "py/object": "ants_ai.engine.play_result.PlayResult",
   "challenge": "ants",
   "location": "localhost",
   "game_id": "0acf0270-1f31-4015-aa2c-0f3a52cc80fb",
@@ -21,7 +21,7 @@
   ],
   "replayformat": "json",
   "replaydata": {
-    "py/object": "ants_ai.training_data_gen.engine.replay_data.ReplayData",
+    "py/object": "ants_ai.engine.replay_data.ReplayData",
     "ants": [
       [
         1,
@@ -1752,7 +1752,7 @@
     ],
     "loadtime": 3000,
     "map": {
-      "py/object": "ants_ai.training_data_gen.engine.map_data.MapData",
+      "py/object": "ants_ai.engine.map_data.MapData",
       "cols": 39,
       "data": [
         "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",

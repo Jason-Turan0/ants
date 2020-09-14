@@ -1,12 +1,12 @@
-from ants_ai.training_data_gen.engine.play_result import PlayResult
+from ants_ai.engine.play_result import PlayResult
 from ants_ai.training.game_state.game_state import GameState
 from functional import seq
 from training.game_state.ant_turn import AntTurn
 from training.game_state.food_turn import FoodTurn
 from training.game_state.game_map import GameMap, Position, Direction
 from training.game_state.game_turn import GameTurn
-import ants_ai.training_data_gen.engine.bot as bot
-from ants_ai.training_data_gen.engine.bot import BotName
+import ants_ai.engine.bot_name as bot_name
+from ants_ai.engine.bot_name import BotName
 
 from typing import List
 
@@ -51,7 +51,7 @@ class GameStateGenerator:
 
     def generate(self, play_result: PlayResult) -> GameState:
         game_map = GameMap(play_result.replaydata.map)
-        bots: List[BotName] = list(map(bot.from_name, play_result.playernames))
+        bots: List[BotName] = list(map(bot_name.from_name, play_result.playernames))
         game_turns = list(
             map(lambda turn_number: self.generate_game_turn(turn_number, bots, game_map, play_result),
                 range(0, play_result.game_length)))

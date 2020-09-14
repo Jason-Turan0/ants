@@ -1,6 +1,6 @@
 from py4j.java_gateway import JavaGateway
-from training_data_gen.engine.bot import Bot
-from training_data_gen.engine.bot_name import BotName
+from engine.bot import Bot
+from engine.bot_name import BotName
 
 
 class JavaBot(Bot):
