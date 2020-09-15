@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from ants_ai.engine.play_result import PlayResult
 import unittest
 from ants_ai.training_data_gen.tournament.tournament_runner import TournamentRunner, save_play_result, \
@@ -13,7 +15,7 @@ class TestTournament(unittest.TestCase):
     def runGame(self) -> PlayResult:
         tr = TournamentRunner(JavaGateway())
         mapPath = f'{os.getcwd()}\\engine\\maps\\training\\small.map'
-        return tr.play_game(BotName('hippo'), BotName('lazarant'), mapPath)
+        return tr.play_game(BotName('hippo'), BotName('lazarant'), str(uuid4()), mapPath)
 
     @unittest.skip('Integration test')
     def test_rungame(self):

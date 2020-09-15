@@ -346,7 +346,7 @@ def get_moves(game, bots, bot_nums, time_limit, turn):
     statuses = [None for b in bots]
 
     for b, bot in enumerate(bots):
-        bot_moves[b] = bot.read_lines();
+        bot_moves[b] = bot.read_lines()
 
         # if bot_finished[b]:
         #    continue # already got bot moves

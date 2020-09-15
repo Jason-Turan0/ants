@@ -1,7 +1,7 @@
 import os
 import unittest
 from functional import seq
-from training.game_state.game_map import TerrainType, Position, Direction, GameMap
+from training.game_state.game_map import TerrainType, Position, Direction, GameMap, create_from_map_data
 from training.tests.test_utils import get_test_play_result
 from ants_ai.engine.map_data import MapData
 
@@ -16,14 +16,14 @@ class TestMaps(unittest.TestCase):
                 .filter(lambda line: line.startswith('m')) \
                 .map(lambda line: line.replace('m ', '')) \
                 .to_list()
-            return GameMap(MapData(cols, map_data, rows))
+            return create_from_map_data(MapData(cols, map_data, rows))
 
     def get_test_map(self) -> GameMap:
         return self.get_map(f'{os.getcwd()}\\engine\\maps\\training\\forage_0.map')
 
     def test_construct_map(self):
         play_result = get_test_play_result()
-        map = GameMap(play_result.replaydata.map)
+        map = create_from_map_data(play_result.replaydata.map)
         self.assertEqual(39, map.column_count)
         self.assertEqual(43, map.row_count)
         self.assertEqual(TerrainType.WATER, map.get_terrain(Position(0, 0)))

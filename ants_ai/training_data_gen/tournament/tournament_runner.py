@@ -6,12 +6,13 @@ from itertools import combinations
 from uuid import uuid4
 
 import jsonpickle
+from engine.bot import Bot
 from functional import seq
 
 import ants_ai.engine.visualizer.visualize_locally
 from ants_ai.engine import visualizer
 from ants_ai.engine.ants import Ants
-from ants_ai.engine.bot import BotName
+from ants_ai.engine.bot_name import BotName
 from ants_ai.engine.engine import run_game
 from ants_ai.engine.play_result import PlayResult
 from typing import List, Tuple
@@ -25,11 +26,10 @@ class TournamentRunner:
         self.gateway = gateway
         self.all_bots = ['hippo', 'lazarant', 'xathis', 'speedyBot', 'memetix', 'pkmiec']
 
-    def play_game(self, bot0: BotName, bot1: BotName, mapPath: str) -> PlayResult:
+    def create_options(self, map_path: str, game_id: str) -> Tuple[dict, dict]:
         turns = 200
         loadtime = 3000
         turntime = 1000
-        game_id = str(uuid4())
         game_options = {
             "attack": "focus",
             "kill_points": 2,
@@ -54,7 +54,7 @@ class TournamentRunner:
         engine_options = {
             "loadtime": loadtime,
             "turntime": turntime,
-            "map_file": mapPath,
+            "map_file": map_path,
             "turns": turns,
             "verbose_log": sys.stdout,
             # "replay_log":,
@@ -70,39 +70,27 @@ class TournamentRunner:
             "end_wait": 0,
             "game_id": game_options["game_id"]
         }
-        with open(mapPath, 'r') as map_file:
+        with open(map_path, 'r') as map_file:
             game_options['map'] = map_file.read()
-        game_id = engine_options.get('game_id', 0)
+        return game_options, engine_options
+
+    def play_game(self, bot0: BotName, bot1: BotName, game_id: str, map_path: str) -> PlayResult:
+        game_options, engine_options = self.create_options(map_path, game_id)
         game = Ants(game_options)
         return run_game(game, [JavaBot(game_id, self.gateway, bot0), JavaBot(game_id, self.gateway, bot1)],
                         engine_options)
 
-        # if engine_options['replay_log']:
-        #    intcpt_replay_io = StringIO()
-        #    real_replay_io = engine_options['replay_log']
-        #    engine_options['replay_log'] = intcpt_replay_io
-
-        # for status in result['status']:
-        #    print(status)
-        # for turns in result['playerturns']:
-        #    print(turns)
-        # for score in result['score']:
-        #    print(score)
-        # if engine_options['replay_log']:
-        #    replay_json = json.loads(intcpt_replay_io.getvalue())
-        #    replay_json['playernames'] = [bot0.bot_name, bot1.bot_name];
-        #    real_replay_io.write(json.dumps(replay_json))
-        #    intcpt_replay_io.close()
-        #    engine_options['replay_log'] = real_replay_io
-        #    engine_options['replay_log'].close()
-        #    visualizer.visualize_locally.launch(replay_path, False, html_path)
+    def play_game_with_bots(self, bot0: Bot, bot1: Bot, game_id: str, map_path: str) -> PlayResult:
+        game_options, engine_options = self.create_options(map_path, game_id)
+        game = Ants(game_options)
+        return run_game(game, [bot0, bot1], engine_options)
 
     def play_tournament_games(self, tournament_directory: str, map_path: str,
                               game_settings: List[Tuple[str, str, int]]):
         print(f'Playing {len(game_settings)} games')
 
         playResults: List[PlayResult] = seq(game_settings).map(
-            lambda tuple: self.play_game(BotName(tuple[0]), BotName(tuple[1]), map_path)).list()
+            lambda tuple: self.play_game(BotName(tuple[0]), BotName(tuple[1]), str(uuid4()), map_path)).list()
 
         os.makedirs(tournament_directory)
         for pr in playResults:

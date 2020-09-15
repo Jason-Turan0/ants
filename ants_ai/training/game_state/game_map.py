@@ -20,7 +20,7 @@ class Direction(Enum):
     NONE = '-'
 
 
-@dataclass(frozen=True)
+@dataclass(eq=True, frozen=True)
 class Position:
     row: int
     column: int
@@ -31,11 +31,15 @@ class Position:
     def __lt__(self, other):
         return (self.row, self.column) < (other.row, other.column)
 
+    def __hash__(self):
+        return hash((self.row, self.column))
+
 
 class GameMap:
-    def __init__(self, map_data: MapData):
-        self.column_count = map_data.cols
-        self.row_count = map_data.rows
+    def __init__(self, row_count: int, column_count: int, terrain: Dict[Position, TerrainType]):
+        self.column_count = column_count
+        self.row_count = row_count
+        self.terrain = terrain
         self.direction_change = {
             Direction.NORTH: (-1, 0),
             Direction.EAST: (0, 1),
@@ -44,17 +48,11 @@ class GameMap:
             Direction.NONE: (0, 0),
         }
 
-        def charToTerrainType(char: str):
-            if char == '%': return TerrainType.WATER
-            return TerrainType.LAND
-
-        self.terrain: Dict[Position, TerrainType] = seq(range(0, self.row_count)) \
-            .flat_map(lambda row: map(lambda column: Position(row, column), range(0, self.column_count))) \
-            .map(lambda position: (position, charToTerrainType(map_data.data[position.row][position.column]))) \
-            .to_dict()
-
     def get_terrain(self, position: Position) -> TerrainType:
         return self.terrain.get(position)
+
+    def update_terrain(self, position: Position, terrain: TerrainType):
+        self.terrain[position] = terrain
 
     def wrap_position(self, new_row: int, new_col: int) -> Position:
         if new_row >= self.row_count:
@@ -91,3 +89,21 @@ class GameMap:
                          for x in range(-d_ceil, d_ceil) for y in range(-d_ceil, d_ceil) \
                          if Position(pos.row + x, pos.column + y).calculate_distance(pos) < radius]
             return positions
+
+
+def create_from_map_data(map_data: MapData) -> GameMap:
+    def charToTerrainType(char: str):
+        if char == '%': return TerrainType.WATER
+        return TerrainType.LAND
+
+    terrain: Dict[Position, TerrainType] = seq(range(0, map_data.rows)) \
+        .flat_map(lambda row: map(lambda column: Position(row, column), range(0, map_data.cols))) \
+        .map(lambda position: (position, charToTerrainType(map_data.data[position.row][position.column]))) \
+        .to_dict()
+    return GameMap(map_data.rows, map_data.cols, terrain)
+
+
+def create_map(row_count: int, column_count: int) -> GameMap:
+    terrain: Dict[Position, TerrainType] = {Position(row, column): TerrainType.LAND
+                                            for row in range(row_count) for column in range(column_count)}
+    return GameMap(row_count, column_count, terrain)
