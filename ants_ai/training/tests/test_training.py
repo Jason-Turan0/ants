@@ -186,15 +186,15 @@ class TestTraining(unittest.TestCase):
     def test_load_weights(self):
         bot_to_emulate = 'memetix_1'
         weight_path = f'logs/fit/conv_2d_20200913-114036/conv_2d_weights_741e221d-0fa7-4a29-9884-390f771a3007_09'
+        save_path = f'neural_network_bot/config/conv_2d_20200913-114036'
         ms = mf.create_conv_2d_model(0.001, 1, bot_to_emulate, 7)
         ms.model.load_weights(weight_path)
-        game_states = create_test_game_states(1, bot_to_emulate)
-        (train, cross_val) = ms.encode_game_states(game_states)
-        predictions = ms.model.predict(cross_val.features)
-        blah = [(cross_val.labels[index], y, cross_val.labels[index].argmax() == numpy.array(y).argmax()) for index, y
-                in enumerate(predictions)]
-        pprint.pprint(blah)
-        print(seq(blah).sum(lambda t: 1 if t[2] == True else 0) / len(predictions))
+        ms.model.save(save_path)
+        # game_states = create_test_game_states(1, bot_to_emulate)
+        # (train, cross_val) = ms.encode_game_states(game_states)
+        # predictions = ms.model.predict(cross_val.features)
+
+        # print(seq(blah).sum(lambda t: 1 if t[2] == True else 0) / len(predictions))
 
     @unittest.skip('Skipped')
     def test_run_report(self):

@@ -1,15 +1,13 @@
-from pprint import pprint
 from typing import Dict, List, Optional, Tuple, Set
-
 import numpy
+from ants_ai.training.game_state.game_map import create_map, GameMap, Position, TerrainType, Direction
 from engine.bot import Bot
 from engine.bot_name import BotName
-from ants_ai.training.game_state.game_map import create_map, GameMap, Position, TerrainType, Direction
 from functional import seq
-import training.neural_network.model_factory as mf
-from training.neural_network.encoders import encode_2d_features
-from training.neural_network.game_state_translator import GameStateTranslator
-from training.neural_network.position_state import PositionState
+from ants_ai.training.neural_network.encoders import encode_2d_features
+from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
+from ants_ai.training.neural_network.position_state import PositionState
+from tensorflow import keras
 
 
 class VisibleAnt:
@@ -41,7 +39,7 @@ class VisibleHill:
 
 
 class NNBot(Bot):
-    def __init__(self, game_identifier: str, name: BotName, weight_path: str):
+    def __init__(self, game_identifier: str, name: BotName, model_path: str):
         super().__init__(game_identifier, name)
         self.game_options: Dict[str, int] = {}
         self.game_map: GameMap = None
@@ -49,20 +47,15 @@ class NNBot(Bot):
         self.visible_food: Set[Position] = set()
         self.visible_hills: Dict[Position, VisibleHill] = {}
         self.pending_orders: List[Order] = []
-
         self.channel_count = 7
         self.gst = GameStateTranslator()
-        ms = mf.create_conv_2d_model(0.001, 1, '', self.channel_count)
-        self.model = ms.model
-        self.model.load_weights(weight_path)
+        self.model = keras.models.load_model(model_path)
 
     def start(self, start_data: str):
-        print(f'Start NNBOT')
         self.game_options = seq(start_data.split('\n')) \
             .filter(lambda line: line != '') \
             .map(lambda opt: (opt.split(' ')[0], int(opt.split(' ')[1]))) \
             .to_dict()
-        # pprint(self.game_options)
         self.game_map = create_map(self.game_options['rows'], self.game_options['cols'])
 
     def convert_pos_to_state(self, pos: Position) -> PositionState:
@@ -91,28 +84,7 @@ class NNBot(Bot):
         d: Direction = self.gst.convert_array_to_enum(pred, Direction)
         return ant, d
 
-    def play_turn(self, play_turn_data: str):
-        # print(f'Play NNBOT')
-        # print(play_turn_data)
-
-        def parse_segments(line: str) -> Tuple[str, Position, Optional[int]]:
-            segments = line.split(' ')
-            return segments[0], Position(int(segments[1]), int(segments[2])), int(segments[3]) if len(
-                segments) == 4 else None
-
-        input_data = seq(play_turn_data.split('\n')) \
-            .filter(lambda line: line != '') \
-            .map(parse_segments) \
-            .to_list()
-
-        seq(input_data).filter(lambda t: t[0] == 'w').for_each(
-            lambda t: self.game_map.update_terrain(t[1], TerrainType.WATER))
-        self.visible_hills = seq(input_data).filter(lambda t: t[0] == 'h').map(
-            lambda t: (t[1], VisibleHill(t[1], t[2]))).to_dict()
-        self.visible_ants = seq(input_data).filter(lambda t: t[0] == 'a').map(
-            lambda t: (t[1], VisibleAnt(t[1], t[2]))).to_dict()
-        self.visible_food = seq(input_data).filter(lambda t: t[0] == 'f').map(lambda t: t[1]).to_set()
-
+    def create_orders(self) -> List[Order]:
         friendly_ants = seq(self.visible_ants.values()) \
             .filter(lambda a: a.is_friendly()) \
             .to_list()
@@ -135,10 +107,28 @@ class NNBot(Bot):
                 if conflicting_order is None:
                     pending_orders[index] = Order(order.position, matching_prediction[1], new_order_position)
             pass_through_count += 1
-        self.pending_orders = pending_orders
+        return pending_orders
+
+    def play_turn(self, play_turn_data: str):
+        def parse_segments(line: str) -> Tuple[str, Position, Optional[int]]:
+            segments = line.split(' ')
+            return segments[0], Position(int(segments[1]), int(segments[2])), int(segments[3]) if len(
+                segments) == 4 else None
+
+        input_data = seq(play_turn_data.split('\n')) \
+            .filter(lambda line: line != '') \
+            .map(parse_segments) \
+            .to_list()
+
+        seq(input_data).filter(lambda t: t[0] == 'w').for_each(
+            lambda t: self.game_map.update_terrain(t[1], TerrainType.WATER))
+        self.visible_hills = seq(input_data).filter(lambda t: t[0] == 'h').map(
+            lambda t: (t[1], VisibleHill(t[1], t[2]))).to_dict()
+        self.visible_ants = seq(input_data).filter(lambda t: t[0] == 'a').map(
+            lambda t: (t[1], VisibleAnt(t[1], t[2]))).to_dict()
+        self.visible_food = seq(input_data).filter(lambda t: t[0] == 'f').map(lambda t: t[1]).to_set()
+        self.pending_orders = self.create_orders()
 
     def read_lines(self):
         orders = seq(self.pending_orders).map(lambda o: str(o)).to_list()
-
-        # pprint(orders)
         return orders

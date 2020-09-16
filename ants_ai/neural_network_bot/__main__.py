@@ -16,12 +16,12 @@ def main(args=None):
     gateway = JavaGateway()
     runner = tr.TournamentRunner(gateway)
     map_path = f'{os.getcwd()}\\ants_ai\\engine\\maps\\training\\small.map'
-    weight_path = f'{os.getcwd()}\\ants_ai\\neural_network_bot\\bot_weights\\conv_2d_weights_741e221d-0fa7-4a29-9884-390f771a3007_09'
+    model_path = f'{os.getcwd()}\\ants_ai\\neural_network_bot\\config\\conv_2d_20200913-114036'
     game_id = str(uuid4())
     profile = cProfile.Profile()
     profile.enable()
     pr = runner.play_game_with_bots(JavaBot(game_id, gateway, BotName('hippo')),
-                                    NNBot(game_id, BotName('neural_network_bot'), weight_path), game_id, map_path)
+                                    NNBot(game_id, BotName('neural_network_bot'), model_path), game_id, map_path)
     profile.disable()
     profile.dump_stats('nn_game.profile')
     dir_path = mkdtemp()
