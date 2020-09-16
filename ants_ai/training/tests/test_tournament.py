@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from ants_ai.engine.play_result import PlayResult
 import unittest
-from ants_ai.training_data_gen.tournament.tournament_runner import TournamentRunner, save_play_result, \
+from training.data_gen.tournament_runner import TournamentRunner, save_play_result, \
     generate_visualization
 from ants_ai.engine.bot import BotName
 from tempfile import mkdtemp

@@ -1,8 +1,8 @@
 from typing import Dict
-from training.game_state.hill_turn import HillTurn
-from training.game_state.ant_turn import AntTurn
-from training.game_state.game_map import GameMap, Position
-from training.game_state.food_turn import FoodTurn
+from ants_ai.training.game_state.hill_turn import HillTurn
+from ants_ai.training.game_state.ant_turn import AntTurn
+from ants_ai.training.game_state.game_map import GameMap, Position
+from ants_ai.training.game_state.food_turn import FoodTurn
 
 
 class GameTurn():

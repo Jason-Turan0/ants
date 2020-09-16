@@ -241,7 +241,7 @@ def run_game(game, bots: List[Bot], options):
                 stats = game.get_stats()
                 stat_keys = sorted(stats.keys())
                 s = 'turn %4d stats: ' % turn
-                if turn % 50 == 0:
+                if turn % 10 == 0:
                     verbose_log.write(' ' * len(s))
                     for key in stat_keys:
                         values = stats[key]

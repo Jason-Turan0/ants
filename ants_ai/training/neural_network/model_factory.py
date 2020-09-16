@@ -1,25 +1,20 @@
+import multiprocessing as mp
 from math import floor
-from pprint import pprint
-from random import random, shuffle
+from random import shuffle
 from typing import List, Tuple, Callable, Dict, Union
 
-from numpy.core.multiarray import ndarray
-from training.game_state.game_state import GameState
-from training.game_state.generator import GameStateGenerator
-from training.neural_network.encoders import TrainingDataset, encode_1d_examples, encode_2d_examples, \
-    encode_flat_examples, encode_map_examples
+import tensorflow as tf
+from tensorflow.keras.layers import Dense
 from tensorflow.python.keras import Sequential, Model, Input
-from tensorflow.python.keras.layers import Dropout, Flatten, Conv1D, concatenate, Conv2D, MaxPooling2D
+from tensorflow.python.keras.layers import Dropout, Flatten, concatenate, Conv2D, MaxPooling2D
+from training.game_state.game_state import GameState
+from training.neural_network.encoders import TrainingDataset, encode_2d_examples, \
+    encode_map_examples
 from training.neural_network.game_state_translator import GameStateTranslator
 from training.neural_network.neural_network_example import AntVision2DExample, AntMapExample
-from training.tests.test_utils import create_test_play_results
-import tensorflow as tf
-import datetime
-import multiprocessing as mp
-from tensorflow.keras.layers import Dense
 
 
-class ModelSettings:
+class ModelTrainer:
     def __init__(self, model: Model, model_name: str,
                  game_state_encoder: Callable[[List[GameState]], Tuple[TrainingDataset, TrainingDataset]],
                  model_params: Dict[str, Union[float, int]]):
@@ -78,7 +73,7 @@ def create_game_state_2d_encoder(bot_name: str, number_of_channels: int):
 
 # Helpful link
 # https://www.quora.com/How-can-I-calculate-the-size-of-output-of-convolutional-layer
-def create_conv_2d_model(learning_rate: float, strides: int, bot_name: str, number_of_channels: int) -> ModelSettings:
+def create_conv_2d_model(learning_rate: float, strides: int, bot_name: str, number_of_channels: int) -> ModelTrainer:
     model = Sequential([
         Input(name='Input',
               shape=(12, 12, number_of_channels)),
@@ -95,8 +90,8 @@ def create_conv_2d_model(learning_rate: float, strides: int, bot_name: str, numb
     model.compile(optimizer=opt,
                   loss=loss_fn,
                   metrics=[tf.keras.metrics.categorical_accuracy])
-    return ModelSettings(model, f'conv_2d', create_game_state_2d_encoder(bot_name, number_of_channels),
-                         {'strides': strides, 'learning_rate': learning_rate, 'number_of_channels': number_of_channels})
+    return ModelTrainer(model, f'conv_2d', create_game_state_2d_encoder(bot_name, number_of_channels),
+                        {'strides': strides, 'learning_rate': learning_rate, 'number_of_channels': number_of_channels})
 
 
 def create_dense_2d_model(learning_rate: float, bot_name: str):
@@ -111,7 +106,7 @@ def create_dense_2d_model(learning_rate: float, bot_name: str):
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
                   loss=tf.keras.losses.CategoricalCrossentropy(),
                   metrics=[tf.keras.metrics.categorical_accuracy])
-    return ModelSettings(model, 'dense_2d', create_game_state_2d_encoder(bot_name), {'learning_rate': learning_rate})
+    return ModelTrainer(model, 'dense_2d', create_game_state_2d_encoder(bot_name), {'learning_rate': learning_rate})
 
 
 def create_hybrid_model(learning_rate: float, strides: int, bot_name: str, channel_count: int):
@@ -154,5 +149,5 @@ def create_hybrid_model(learning_rate: float, strides: int, bot_name: str, chann
         return (TrainingDataset([av_encoded_train.features, map_encoded_train.features], av_encoded_train.labels),
                 TrainingDataset([av_encoded_cv.features, map_encoded_cv.features], av_encoded_cv.labels))
 
-    return ModelSettings(model, f'hybrid_2d', encoder,
-                         {'learning_rate': learning_rate, 'strides': strides, 'channel_count': channel_count})
+    return ModelTrainer(model, f'hybrid_2d', encoder,
+                        {'learning_rate': learning_rate, 'strides': strides, 'channel_count': channel_count})

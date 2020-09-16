@@ -86,7 +86,7 @@ def plot_learning_curve(data):
 
 class TestTraining(unittest.TestCase):
 
-    def train_model(self, game_states: List[GameState], ms: mf.ModelSettings):
+    def train_model(self, game_states: List[GameState], ms: mf.ModelTrainer):
         log_dir = f'logs/fit/{ms.model_name}_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}'
         run_stats_path = f'{log_dir}/run_stats.json'
         model_weights_path = f'{log_dir}/{ms.model_name}_weights_{uuid.uuid4()}'
@@ -182,7 +182,7 @@ class TestTraining(unittest.TestCase):
         # print(prediction1)
         # print(test_labels[0])
 
-    @unittest.skip('Skipped')
+    # @unittest.skip('Skipped')
     def test_load_weights(self):
         bot_to_emulate = 'memetix_1'
         weight_path = f'logs/fit/conv_2d_20200913-114036/conv_2d_weights_741e221d-0fa7-4a29-9884-390f771a3007_09'

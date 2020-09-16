@@ -22,9 +22,10 @@ class VisibleAnt:
 
 
 class Order:
-    def __init__(self, position: Position, dir: Direction):
+    def __init__(self, position: Position, dir: Direction, next_position: Position):
         self.position = position
         self.dir = dir
+        self.next_position = next_position
 
     def __str__(self):
         return f'o {self.position.row} {self.position.column} {self.dir.value}'
@@ -75,12 +76,11 @@ class NNBot(Bot):
             return PositionState.FOOD
         return PositionState.WATER if self.game_map.get_terrain(pos) == TerrainType.WATER else PositionState.LAND
 
-    def create_prediction(self, ant: VisibleAnt) -> Order:
-        ant_vision = [p for p in self.game_map.get_positions_within_distance(ant.position,
-                                                                             self.game_options['viewradius2'],
-                                                                             use_absolute=False,
-                                                                             crop_to_square=True)
-                      ]
+    def create_predictions(self, ant: VisibleAnt) -> Tuple[VisibleAnt, Direction]:
+        ant_vision = self.game_map.get_positions_within_distance(ant.position,
+                                                                 self.game_options['viewradius2'],
+                                                                 use_absolute=False,
+                                                                 crop_to_square=True)
         position_states = {av: self.convert_pos_to_state(
             self.game_map.wrap_position(ant.position.row + av.row, ant.position.column + av.column)
         ) for av in ant_vision}
@@ -89,7 +89,7 @@ class NNBot(Bot):
         pred = [0] * 5
         pred[numpy.array(prediction[0]).argmax()] = 1
         d: Direction = self.gst.convert_array_to_enum(pred, Direction)
-        return Order(ant.position, d)
+        return ant, d
 
     def play_turn(self, play_turn_data: str):
         # print(f'Play NNBOT')
@@ -113,12 +113,32 @@ class NNBot(Bot):
             lambda t: (t[1], VisibleAnt(t[1], t[2]))).to_dict()
         self.visible_food = seq(input_data).filter(lambda t: t[0] == 'f').map(lambda t: t[1]).to_set()
 
-        self.pending_orders = seq(self.visible_ants.values()) \
+        friendly_ants = seq(self.visible_ants.values()) \
             .filter(lambda a: a.is_friendly()) \
-            .map(lambda a: self.create_prediction(a)) \
             .to_list()
+
+        pending_orders = seq(friendly_ants) \
+            .map(lambda va: Order(va.position, Direction.NONE,
+                                  self.game_map.adjacent_movement_position(va.position, Direction.NONE))) \
+            .to_list()
+        predictions: List[Tuple[VisibleAnt, Direction]] = seq(friendly_ants) \
+            .map(lambda va: self.create_predictions(va)) \
+            .to_list()
+
+        pass_through_count = 0
+        while seq(pending_orders).filter(lambda po: po.dir == Direction.NONE).len() > 0 and pass_through_count < 3:
+            for index, order in enumerate(pending_orders):
+                matching_prediction = seq(predictions).find(lambda t: t[0].position == order.position)
+                new_order_position = self.game_map.adjacent_movement_position(order.position,
+                                                                              matching_prediction[1])
+                conflicting_order = seq(pending_orders).find(lambda po: po.next_position == new_order_position)
+                if conflicting_order is None:
+                    pending_orders[index] = Order(order.position, matching_prediction[1], new_order_position)
+            pass_through_count += 1
+        self.pending_orders = pending_orders
 
     def read_lines(self):
         orders = seq(self.pending_orders).map(lambda o: str(o)).to_list()
+
         # pprint(orders)
         return orders

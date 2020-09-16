@@ -1,4 +1,4 @@
-from training.game_state.game_map import Position
+from ants_ai.training.game_state.game_map import Position
 from engine.bot import BotName
 
 

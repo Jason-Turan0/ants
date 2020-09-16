@@ -1,4 +1,4 @@
-from ants_ai.training_data_gen.tournament.tournament_runner import TournamentRunner
+from training.data_gen.tournament_runner import TournamentRunner
 from py4j.java_gateway import JavaGateway
 from datetime import datetime
 import os

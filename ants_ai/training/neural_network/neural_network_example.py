@@ -1,7 +1,7 @@
 from typing import List, Dict
 
-from training.game_state.game_map import Direction, Position
-from training.neural_network.position_state import PositionState
+from ants_ai.training.game_state.game_map import Direction, Position
+from ants_ai.training.neural_network.position_state import PositionState
 
 
 class AntVision1DExample:

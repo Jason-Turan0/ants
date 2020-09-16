@@ -1,10 +1,10 @@
 from ants_ai.engine.play_result import PlayResult
 from ants_ai.training.game_state.game_state import GameState
 from functional import seq
-from training.game_state.ant_turn import AntTurn
-from training.game_state.food_turn import FoodTurn
-from training.game_state.game_map import GameMap, Position, Direction, create_from_map_data
-from training.game_state.game_turn import GameTurn
+from ants_ai.training.game_state.ant_turn import AntTurn
+from ants_ai.training.game_state.food_turn import FoodTurn
+from ants_ai.training.game_state.game_map import GameMap, Position, Direction, create_from_map_data
+from ants_ai.training.game_state.game_turn import GameTurn
 import ants_ai.engine.bot_name as bot_name
 from ants_ai.engine.bot_name import BotName
 

@@ -1,6 +1,6 @@
 from functional import seq
 from training.game_state.ant_turn import AntTurn
-from training.game_state.game_map import Position, Direction, TerrainType
+from ants_ai.training.game_state.game_map import Position, Direction, TerrainType
 from training.game_state.game_state import GameState
 from typing import List, Type, TypeVar, Dict, Tuple
 from enum import Enum
