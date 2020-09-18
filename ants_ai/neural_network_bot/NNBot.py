@@ -69,20 +69,30 @@ class NNBot(Bot):
             return PositionState.FOOD
         return PositionState.WATER if self.game_map.get_terrain(pos) == TerrainType.WATER else PositionState.LAND
 
-    def create_predictions(self, ant: VisibleAnt) -> Tuple[VisibleAnt, Direction]:
-        ant_vision = self.game_map.get_positions_within_distance(ant.position,
-                                                                 self.game_options['viewradius2'],
-                                                                 use_absolute=False,
-                                                                 crop_to_square=True)
-        position_states = {av: self.convert_pos_to_state(
-            self.game_map.wrap_position(ant.position.row + av.row, ant.position.column + av.column)
-        ) for av in ant_vision}
-        features = encode_2d_features([position_states], self.gst, self.channel_count)
-        prediction = self.model.predict(features)
-        pred = [0] * 5
-        pred[numpy.array(prediction[0]).argmax()] = 1
-        d: Direction = self.gst.convert_array_to_enum(pred, Direction)
-        return ant, d
+    def create_predictions(self, ants: List[VisibleAnt]) -> List[Tuple[VisibleAnt, Direction]]:
+
+        def map_to_position_state(ant: VisibleAnt) -> Dict[Position, PositionState]:
+            ant_vision = self.game_map.get_positions_within_distance(ant.position,
+                                                                     self.game_options['viewradius2'],
+                                                                     use_absolute=False,
+                                                                     crop_to_square=True)
+            position_states = {av: self.convert_pos_to_state(
+                self.game_map.wrap_position(ant.position.row + av.row, ant.position.column + av.column)
+            ) for av in ant_vision}
+            return position_states
+
+        def convert_prediction_to_direction(ant: VisibleAnt, prediction: List) -> Tuple[VisibleAnt, Direction]:
+            pred = [0] * 5
+            pred[numpy.array(prediction).argmax()] = 1
+            d: Direction = self.gst.convert_array_to_enum(pred, Direction)
+            return ant, d
+
+        position_states = seq(ants).map(map_to_position_state).to_list()
+        features = encode_2d_features(position_states, self.gst, self.channel_count)
+        predictions = self.model.predict(features)
+        mapped_predictions = [convert_prediction_to_direction(ants[index], prediction) for index, prediction in
+                              enumerate(predictions)]
+        return mapped_predictions
 
     def create_orders(self) -> List[Order]:
         friendly_ants = seq(self.visible_ants.values()) \
@@ -93,9 +103,7 @@ class NNBot(Bot):
             .map(lambda va: Order(va.position, Direction.NONE,
                                   self.game_map.adjacent_movement_position(va.position, Direction.NONE))) \
             .to_list()
-        predictions: List[Tuple[VisibleAnt, Direction]] = seq(friendly_ants) \
-            .map(lambda va: self.create_predictions(va)) \
-            .to_list()
+        predictions: List[Tuple[VisibleAnt, Direction]] = self.create_predictions(friendly_ants)
 
         pass_through_count = 0
         while seq(pending_orders).filter(lambda po: po.dir == Direction.NONE).len() > 0 and pass_through_count < 3:
