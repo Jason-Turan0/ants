@@ -4,7 +4,6 @@ from uuid import uuid4
 import jsonpickle
 from ants_ai.engine.bot import Bot
 from functional import seq
-import ants_ai.engine.visualizer.visualize_locally
 from ants_ai.engine import visualizer
 from ants_ai.engine.ants import Ants
 from ants_ai.engine.bot_name import BotName
@@ -49,7 +48,7 @@ class TournamentRunner:
             "turntime": turntime,
             "map_file": map_path,
             "turns": turns,
-            "verbose_log":sys.stdout,
+            "verbose_log": sys.stdout,
             "log_dir": "game_log",
             "log_stream": False,
             "log_input": False,

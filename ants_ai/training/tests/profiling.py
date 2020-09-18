@@ -1,5 +1,4 @@
 import cProfile
-from functional import seq
 from ants_ai.training.tests.test_utils import create_test_game_state
 from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
 

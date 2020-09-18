@@ -23,48 +23,48 @@ class TestMaps(unittest.TestCase):
 
     def test_construct_map(self):
         play_result = get_test_play_result()
-        map = create_from_map_data(play_result.replaydata.map)
-        self.assertEqual(39, map.column_count)
-        self.assertEqual(43, map.row_count)
-        self.assertEqual(TerrainType.WATER, map.get_terrain(Position(0, 0)))
-        self.assertEqual(TerrainType.LAND, map.get_terrain(Position(1, 5)))
-        self.assertEqual(TerrainType.LAND, map.get_terrain(Position(21, 18)))
+        game_map = create_from_map_data(play_result.replaydata.map)
+        self.assertEqual(39, game_map.column_count)
+        self.assertEqual(43, game_map.row_count)
+        self.assertEqual(TerrainType.WATER, game_map.get_terrain(Position(0, 0)))
+        self.assertEqual(TerrainType.LAND, game_map.get_terrain(Position(1, 5)))
+        self.assertEqual(TerrainType.LAND, game_map.get_terrain(Position(21, 18)))
 
     def test_calculate_adjacent_position_south(self):
-        map = self.get_test_map()
-        self.assertEqual(TerrainType.LAND, map.get_terrain(Position(1, 5)))
-        self.assertEqual(Position(2, 5), map.adjacent_movement_position(Position(1, 5), Direction.SOUTH))
+        game_map = self.get_test_map()
+        self.assertEqual(TerrainType.LAND, game_map.get_terrain(Position(1, 5)))
+        self.assertEqual(Position(2, 5), game_map.adjacent_movement_position(Position(1, 5), Direction.SOUTH))
 
     def test_calculate_adjacent_position_north(self):
-        map = self.get_test_map()
-        self.assertEqual(Position(0, 5), map.adjacent_movement_position(Position(1, 5), Direction.NORTH))
+        game_map = self.get_test_map()
+        self.assertEqual(Position(0, 5), game_map.adjacent_movement_position(Position(1, 5), Direction.NORTH))
 
     def test_calculate_adjacent_position_east(self):
-        map = self.get_test_map()
-        self.assertEqual(Position(1, 6), map.adjacent_movement_position(Position(1, 5), Direction.EAST))
+        game_map = self.get_test_map()
+        self.assertEqual(Position(1, 6), game_map.adjacent_movement_position(Position(1, 5), Direction.EAST))
 
     def test_calculate_adjacent_position_west(self):
-        map = self.get_test_map()
-        self.assertEqual(Position(1, 4), map.adjacent_movement_position(Position(1, 5), Direction.WEST))
+        game_map = self.get_test_map()
+        self.assertEqual(Position(1, 4), game_map.adjacent_movement_position(Position(1, 5), Direction.WEST))
 
     def test_calculate_adjacent_position_south_wrap(self):
-        map = self.get_test_map()
-        self.assertEqual(Position(0, 5), map.adjacent_movement_position(Position(79, 5), Direction.SOUTH))
+        game_map = self.get_test_map()
+        self.assertEqual(Position(0, 5), game_map.adjacent_movement_position(Position(79, 5), Direction.SOUTH))
 
     def test_calculate_adjacent_position_north_wrap(self):
-        map = self.get_test_map()
-        self.assertEqual(Position(79, 5), map.adjacent_movement_position(Position(0, 5), Direction.NORTH))
+        game_map = self.get_test_map()
+        self.assertEqual(Position(79, 5), game_map.adjacent_movement_position(Position(0, 5), Direction.NORTH))
 
     def test_calculate_adjacent_position_east_wrap(self):
-        map = self.get_test_map()
-        self.assertEqual(Position(1, 0), map.adjacent_movement_position(Position(1, 79), Direction.EAST))
+        game_map = self.get_test_map()
+        self.assertEqual(Position(1, 0), game_map.adjacent_movement_position(Position(1, 79), Direction.EAST))
 
     def test_calculate_adjacent_position_west_wrap(self):
-        map = self.get_test_map()
-        self.assertEqual(Position(1, 79), map.adjacent_movement_position(Position(1, 0), Direction.WEST))
+        game_map = self.get_test_map()
+        self.assertEqual(Position(1, 79), game_map.adjacent_movement_position(Position(1, 0), Direction.WEST))
 
     def test_calculate_vision(self):
-        map = self.get_test_map()
+        game_map = self.get_test_map()
         expected = [Position(row=8, column=26), Position(row=8, column=27), Position(row=8, column=28),
                     Position(row=8, column=29), Position(row=8, column=30), Position(row=8, column=31),
                     Position(row=8, column=32), Position(row=9, column=24), Position(row=9, column=25),
@@ -146,15 +146,16 @@ class TestMaps(unittest.TestCase):
                     Position(row=24, column=26), Position(row=24, column=27), Position(row=24, column=28),
                     Position(row=24, column=29), Position(row=24, column=30), Position(row=24, column=31),
                     Position(row=24, column=32)]
-        within_dist = map.get_positions_within_distance(Position(16, 29), 77, True)
+        within_dist = game_map.get_positions_within_distance(Position(16, 29), 77, True)
         self.assertIsNotNone(within_dist)
         self.assertEqual(len(expected), len(within_dist))
         for pe in expected:
+            # pylint: disable=cell-var-from-loop
             self.assertIsNotNone(seq(within_dist).find(lambda pa: pa == pe),
-                                 msg=f'Failed to find expected vision ${pe}')
+                                 msg='Failed to find expected vision ${pe}')
 
     def test_calculate_vision_square(self):
-        map = self.get_test_map()
+        game_map = self.get_test_map()
         expected = [(-6, -6), (-6, -5), (-6, -4), (-6, -3), (-6, -2), (-6, -1), (-6, 0), (-6, 1), (-6, 2), (-6, 3),
                     (-6, 4), (-6, 5), (-5, -6), (-5, -5), (-5, -4), (-5, -3), (-5, -2), (-5, -1), (-5, 0), (-5, 1),
                     (-5, 2), (-5, 3), (-5, 4), (-5, 5), (-4, -6), (-4, -5), (-4, -4), (-4, -3), (-4, -2), (-4, -1),
@@ -170,9 +171,11 @@ class TestMaps(unittest.TestCase):
                     (4, -1), (4, 0), (4, 1), (4, 2), (4, 3), (4, 4), (4, 5), (5, -6), (5, -5), (5, -4), (5, -3),
                     (5, -2), (5, -1), (5, 0), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5)]
 
-        within_dist = map.get_positions_within_distance(Position(16, 25), 77, use_absolute=False, crop_to_square=True)
+        within_dist = game_map.get_positions_within_distance(Position(16, 25), 77, use_absolute=False,
+                                                             crop_to_square=True)
         self.assertIsNotNone(within_dist)
         self.assertEqual(len(expected), len(within_dist))
-        for pe in expected:
-            self.assertIsNotNone(seq(within_dist).find(lambda pa: pa.row == pe[0] and pa.column == pe[1]),
-                                 msg=f'Failed to find expected vision ${pe}')
+        seq(expected).for_each(lambda pe: self.assertIsNotNone(
+            seq(within_dist).find(lambda pa: pa.row == pe[0] and pa.column == pe[1]),
+            msg=f'Failed to find expected vision ${pe}')
+                               )

@@ -131,7 +131,7 @@ def train_model(game_states: List[GameState], ms: mf.ModelTrainer):
         stream.write(jsonpickle.encode(stats))
 
 
-def main(args=None):
+def main():
     bot_to_emulate = 'memetix_1'
     game_states = create_test_game_states(1, bot_to_emulate)
     mt = mf.create_conv_2d_model(0.001, 1, bot_to_emulate, 7)

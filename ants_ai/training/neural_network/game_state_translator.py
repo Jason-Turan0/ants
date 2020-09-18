@@ -1,17 +1,13 @@
-from functional import seq
-from ants_ai.training.game_state.ant_turn import AntTurn
-from ants_ai.training.game_state.game_map import Position, Direction, TerrainType
-from ants_ai.training.game_state.game_state import GameState
-from typing import List, Type, TypeVar, Dict, Tuple
 from enum import Enum
+from typing import List, Type, TypeVar, Dict, Tuple
 
+from ants_ai.training.game_state.ant_turn import AntTurn
+from ants_ai.training.game_state.game_map import Position, TerrainType
+from ants_ai.training.game_state.game_state import GameState
 from ants_ai.training.game_state.game_turn import GameTurn
 from ants_ai.training.neural_network.neural_network_example import AntVision1DExample, AntMapExample, AntVision2DExample
-
 from ants_ai.training.neural_network.position_state import PositionState
-
-TRAINING_VIEW_RADIUS = 77;
-TRAINING_VIEW_SIZE = 241;
+from functional import seq
 
 T = TypeVar('T', bound=Enum)
 
@@ -105,10 +101,11 @@ class GameStateTranslator:
             .map(
             lambda t: ((t[0].game_id, t[1].turn_number), self.convert_to_map_example(bot_name, t[1].turn_number, t[0]))) \
             .to_dict()
-        # TODO check all maps in set are identical.
-        map = game_states[0].game_map
+        # Need to check all maps in set are identical.
+        game_map = game_states[0].game_map
         examples = [
-            AntMapExample(map_states[(gs.game_id, gt.turn_number)], at.next_direction, map.row_count, map.column_count)
+            AntMapExample(map_states[(gs.game_id, gt.turn_number)], at.next_direction, game_map.row_count,
+                          game_map.column_count)
             for gs in game_states for gt in gs.game_turns for at in gt.ants.values()
             if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
 

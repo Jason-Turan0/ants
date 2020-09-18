@@ -90,7 +90,7 @@ def create_conv_2d_model(learning_rate: float, strides: int, bot_name: str, numb
     model.compile(optimizer=opt,
                   loss=loss_fn,
                   metrics=[tf.keras.metrics.categorical_accuracy])
-    return ModelTrainer(model, f'conv_2d', create_game_state_2d_encoder(bot_name, number_of_channels),
+    return ModelTrainer(model, 'conv_2d', create_game_state_2d_encoder(bot_name, number_of_channels),
                         {'strides': strides, 'learning_rate': learning_rate, 'number_of_channels': number_of_channels})
 
 
@@ -106,7 +106,7 @@ def create_dense_2d_model(learning_rate: float, bot_name: str):
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
                   loss=tf.keras.losses.CategoricalCrossentropy(),
                   metrics=[tf.keras.metrics.categorical_accuracy])
-    return ModelTrainer(model, 'dense_2d', create_game_state_2d_encoder(bot_name), {'learning_rate': learning_rate})
+    return ModelTrainer(model, 'dense_2d', create_game_state_2d_encoder(bot_name, 7), {'learning_rate': learning_rate})
 
 
 def create_hybrid_model(learning_rate: float, strides: int, bot_name: str, channel_count: int):
@@ -149,5 +149,5 @@ def create_hybrid_model(learning_rate: float, strides: int, bot_name: str, chann
         return (TrainingDataset([av_encoded_train.features, map_encoded_train.features], av_encoded_train.labels),
                 TrainingDataset([av_encoded_cv.features, map_encoded_cv.features], av_encoded_cv.labels))
 
-    return ModelTrainer(model, f'hybrid_2d', encoder,
+    return ModelTrainer(model, 'hybrid_2d', encoder,
                         {'learning_rate': learning_rate, 'strides': strides, 'channel_count': channel_count})

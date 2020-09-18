@@ -12,7 +12,7 @@ import cProfile
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 
-def main(args=None):
+def main():
     gateway = JavaGateway()
     runner = tr.TournamentRunner(gateway)
     map_path = f'{os.getcwd()}\\ants_ai\\engine\\maps\\training\\small.map'

@@ -1,8 +1,8 @@
 import unittest
+
 from ants_ai.training.game_state.ant_turn import AntTurn
 from ants_ai.training.game_state.game_map import Position, Direction
-from functional import seq
-from ants_ai.training.tests.test_utils import get_test_play_result, create_test_game_state
+from ants_ai.training.tests.test_utils import create_test_game_state
 
 
 class TestAntTurns(unittest.TestCase):

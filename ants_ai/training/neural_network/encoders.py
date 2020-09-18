@@ -1,5 +1,5 @@
 from pprint import pprint
-from typing import List, Tuple, Union, Dict
+from typing import List, Union, Dict
 
 import numpy
 from functional import seq

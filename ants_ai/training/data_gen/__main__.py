@@ -4,7 +4,7 @@ from datetime import datetime
 import os
 
 
-def main(args=None):
+def main():
     gateway = JavaGateway()
     gr = TournamentRunner(gateway)
     mapPath = f'{os.getcwd()}\\ants_ai\\engine\\maps\\training\\small.map'

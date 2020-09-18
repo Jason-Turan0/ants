@@ -10,11 +10,11 @@ class JavaBot(Bot):
         self.gateway = gateway
         self.game_identifier = game_identifier
 
-    def start(self, startData):
-        self.gateway.createPlayer(self.game_identifier, self.name.bot_name, self.name.bot_type, startData)
+    def start(self, start_data):
+        self.gateway.createPlayer(self.game_identifier, self.name.bot_name, self.name.bot_type, start_data)
 
-    def play_turn(self, playTurnData):
-        data = self.gateway.playTurn(self.game_identifier, self.name.bot_name, playTurnData)
+    def play_turn(self, play_turn_data):
+        data = self.gateway.playTurn(self.game_identifier, self.name.bot_name, play_turn_data)
         self.turn_commands = data
 
     def read_lines(self):

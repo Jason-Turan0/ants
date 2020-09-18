@@ -9,11 +9,11 @@ class Bot:
         self.name = name
 
     @abstractmethod
-    def start(self, startData):
+    def start(self, start_data: str):
         pass
 
     @abstractmethod
-    def play_turn(self, playTurnData):
+    def play_turn(self, play_turn_data: str):
         pass
 
     @abstractmethod
@@ -42,7 +42,7 @@ class Bot:
     def _child_writer(self):
         pass
 
-    def write(self, str):
+    def write(self, str: str):
         pass
 
     def write_line(self, line):

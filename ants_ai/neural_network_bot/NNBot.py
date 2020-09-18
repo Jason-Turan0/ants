@@ -1,13 +1,14 @@
 from typing import Dict, List, Optional, Tuple, Set
 import numpy
+from functional import seq
+from tensorflow import keras
+
 from ants_ai.training.game_state.game_map import create_map, GameMap, Position, TerrainType, Direction
 from ants_ai.engine.bot import Bot
 from ants_ai.engine.bot_name import BotName
-from functional import seq
 from ants_ai.training.neural_network.encoders import encode_2d_features
 from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
 from ants_ai.training.neural_network.position_state import PositionState
-from tensorflow import keras
 
 
 class VisibleAnt:
@@ -20,9 +21,9 @@ class VisibleAnt:
 
 
 class Order:
-    def __init__(self, position: Position, dir: Direction, next_position: Position):
+    def __init__(self, position: Position, d: Direction, next_position: Position):
         self.position = position
-        self.dir = dir
+        self.dir = d
         self.next_position = next_position
 
     def __str__(self):
@@ -108,9 +109,11 @@ class NNBot(Bot):
         pass_through_count = 0
         while seq(pending_orders).filter(lambda po: po.dir == Direction.NONE).len() > 0 and pass_through_count < 3:
             for index, order in enumerate(pending_orders):
+                # pylint: disable=cell-var-from-loop
                 matching_prediction = seq(predictions).find(lambda t: t[0].position == order.position)
                 new_order_position = self.game_map.adjacent_movement_position(order.position,
                                                                               matching_prediction[1])
+                # pylint: disable=cell-var-from-loop
                 conflicting_order = seq(pending_orders).find(lambda po: po.next_position == new_order_position)
                 if conflicting_order is None:
                     pending_orders[index] = Order(order.position, matching_prediction[1], new_order_position)
@@ -138,5 +141,5 @@ class NNBot(Bot):
         self.pending_orders = self.create_orders()
 
     def read_lines(self):
-        orders = seq(self.pending_orders).map(lambda o: str(o)).to_list()
+        orders = seq(self.pending_orders).map(str).to_list()
         return orders

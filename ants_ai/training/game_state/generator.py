@@ -18,12 +18,10 @@ class GameStateGenerator:
     def generate_game_turn(self, turn_number: int, bots: List[BotName], game_map: GameMap,
                            play_result: PlayResult) -> GameTurn:
         def map_ant_turn(row):
-            start_row, start_col, start_turn, end_turn, bot_index, direction_history = row
+            start_row, start_col, start_turn, _, bot_index, direction_history = row
             position_at_turn = seq(range(turn_number - start_turn)) \
                 .map(lambda movement_index: Direction(direction_history[movement_index])) \
-                .reduce(lambda position, direction: game_map.adjacent_movement_position(position, direction),
-                        Position(start_row, start_col))
-
+                .reduce(game_map.adjacent_movement_position, Position(start_row, start_col))
             next_direction_code = direction_history[(turn_number - start_turn)] if (turn_number - start_turn) < len(
                 direction_history) else None
             return position_at_turn, AntTurn(turn_number, bots[bot_index], position_at_turn, row,

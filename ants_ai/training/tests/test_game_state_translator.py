@@ -1,10 +1,8 @@
 import unittest
-from pprint import pprint
 
-from ants_ai.training.neural_network.game_state_translator import GameStateTranslator, PositionState
 from ants_ai.training.game_state.game_map import Position
+from ants_ai.training.neural_network.game_state_translator import GameStateTranslator, PositionState
 from ants_ai.training.tests.test_utils import create_test_game_state
-import tensorflow as tf
 
 
 class TestGameStateTranslator(unittest.TestCase):

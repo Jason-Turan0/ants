@@ -6,6 +6,11 @@ def test(context):
     context.run('cd ants_ai & python -m unittest')
 
 @task
+def lint(context):
+    context.run('pylint ants_ai')
+
+
+@task
 def build_java_bots(context):
     context.run('cd bots & ant clean & ant compile & ant jar')
 
