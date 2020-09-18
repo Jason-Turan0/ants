@@ -1,8 +1,22 @@
-**Getting started**
-1. Install Java SDK and set the JAVA_HOME and JDK_HOME system variables and add the java bin folder to the SYSTEM PATH
-1. Install apache ant and set the ANT_HOME add the bin folder to the system path variable
+
+**Prerequisites**
+1. Install the Java SDK and set the JAVA_HOME and JDK_HOME system variables.  Add the java bin folder to the SYSTEM PATH
+1. Install apache ant and set the ANT_HOME system variable. Add the ANT_HOME\bin folder to the SYSTEM PATH
 1. Install python x64 version and add to system PATH variable 
 1. Install virtual environment in source code root folder
     1. `python -m venv venv`
-1. Install deps
+1. Install dependencies by executing the following script
     1. `.\InstallDeps.bat`
+1. Now you should have the requirements in order to run the game engine or training scripts. See tasks for common run configurations
+
+**Tasks** 
+
+This project is using [Invoke] for build and run tasks. 
+1. To execute from the command line first navigate to the root folder. 
+2. Login to python shell within virtual environment by running 
+    1. `.\venv\Scripts\activate`
+    1. `invoke %task-name%`
+3. Tasks names can be listed using `invoke -l`
+ 
+    
+[Invoke]: http://www.pyinvoke.org/

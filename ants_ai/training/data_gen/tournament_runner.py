@@ -4,7 +4,7 @@ from uuid import uuid4
 import jsonpickle
 from ants_ai.engine.bot import Bot
 from functional import seq
-from ants_ai.engine import visualizer
+from ants_ai.engine.visualizer import visualize_locally
 from ants_ai.engine.ants import Ants
 from ants_ai.engine.bot_name import BotName
 from ants_ai.engine.engine import run_game
@@ -144,4 +144,4 @@ def save_play_result(result: PlayResult, replay_path: str):
 
 
 def generate_visualization(replay_path: str, html_path):
-    visualizer.visualize_locally.launch(replay_path, False, html_path)
+    visualize_locally.launch(replay_path, False, html_path)

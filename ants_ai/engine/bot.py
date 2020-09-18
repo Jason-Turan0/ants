@@ -42,7 +42,7 @@ class Bot:
     def _child_writer(self):
         pass
 
-    def write(self, str: str):
+    def write(self, data: str):
         pass
 
     def write_line(self, line):
