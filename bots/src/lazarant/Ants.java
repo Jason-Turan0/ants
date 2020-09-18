@@ -1,4 +1,5 @@
 package lazarant;
+
 import java.util.*;
 
 /**
@@ -707,8 +708,8 @@ public class Ants {
     public void issueOrder(Order order) {
         movedAnts.add(order.tile);
 
-        System.out.println(order.toCommand());
-        System.out.flush();
+        //System.out.println(order.toCommand());
+        //System.out.flush();
     }
 
     public void addWater(int row, int col) {

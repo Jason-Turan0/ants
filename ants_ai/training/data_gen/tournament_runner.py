@@ -1,12 +1,8 @@
-import json
-import os
 import sys
-from io import StringIO
 from itertools import combinations
 from uuid import uuid4
-
 import jsonpickle
-from engine.bot import Bot
+from ants_ai.engine.bot import Bot
 from functional import seq
 
 import ants_ai.engine.visualizer.visualize_locally

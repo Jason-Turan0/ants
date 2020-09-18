@@ -3,5 +3,6 @@ out
 venv
 training_data_gen/tournaments
 **/*.class
+**/*.profile
 **/Pipfile.lock
 ants.ai.egg-info

@@ -148,7 +148,6 @@ class TestMaps(unittest.TestCase):
                     Position(row=24, column=32)]
         within_dist = map.get_positions_within_distance(Position(16, 29), 77, True)
         self.assertIsNotNone(within_dist)
-        print(len(within_dist))
         self.assertEqual(len(expected), len(within_dist))
         for pe in expected:
             self.assertIsNotNone(seq(within_dist).find(lambda pa: pa == pe),
@@ -173,9 +172,6 @@ class TestMaps(unittest.TestCase):
 
         within_dist = map.get_positions_within_distance(Position(16, 25), 77, use_absolute=False, crop_to_square=True)
         self.assertIsNotNone(within_dist)
-        print(len(within_dist))
-
-        print(within_dist)
         self.assertEqual(len(expected), len(within_dist))
         for pe in expected:
             self.assertIsNotNone(seq(within_dist).find(lambda pa: pa.row == pe[0] and pa.column == pe[1]),

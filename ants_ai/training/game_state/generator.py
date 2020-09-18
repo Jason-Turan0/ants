@@ -10,7 +10,7 @@ from ants_ai.engine.bot_name import BotName
 
 from typing import List
 
-from training.game_state.hill_turn import HillTurn
+from ants_ai.training.game_state.hill_turn import HillTurn
 
 
 class GameStateGenerator:

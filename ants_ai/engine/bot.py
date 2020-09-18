@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from engine.bot_name import BotName
+from ants_ai.engine.bot_name import BotName
 
 
 class Bot:

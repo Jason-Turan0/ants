@@ -1,5 +1,5 @@
-from engine.bot import Bot
-from engine.bot_name import BotName
+from ants_ai.engine.bot import Bot
+from ants_ai.engine.bot_name import BotName
 
 
 class PythonBot(Bot):

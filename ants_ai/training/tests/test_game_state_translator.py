@@ -3,7 +3,7 @@ from pprint import pprint
 
 from ants_ai.training.neural_network.game_state_translator import GameStateTranslator, PositionState
 from ants_ai.training.game_state.game_map import Position
-from training.tests.test_utils import create_test_game_state
+from ants_ai.training.tests.test_utils import create_test_game_state
 import tensorflow as tf
 
 
@@ -39,8 +39,6 @@ class TestGameStateTranslator(unittest.TestCase):
         translator = GameStateTranslator()
         translated = translator.convert_to_2d_ant_vision('pkmiec_1', [game_state])
         self.assertIsNotNone(translated)
-        pprint(translated[0].features)
-        print(translated[0].features.keys())
 
 
 if __name__ == '__main__':

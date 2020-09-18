@@ -1,8 +1,8 @@
 from typing import Dict, List, Optional, Tuple, Set
 import numpy
 from ants_ai.training.game_state.game_map import create_map, GameMap, Position, TerrainType, Direction
-from engine.bot import Bot
-from engine.bot_name import BotName
+from ants_ai.engine.bot import Bot
+from ants_ai.engine.bot_name import BotName
 from functional import seq
 from ants_ai.training.neural_network.encoders import encode_2d_features
 from ants_ai.training.neural_network.game_state_translator import GameStateTranslator

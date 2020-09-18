@@ -3,10 +3,10 @@ from typing import List, Tuple
 
 import jsonpickle
 from functional import seq
-from training.game_state.game_state import GameState
-from training.game_state.generator import GameStateGenerator
-from training.neural_network.game_state_translator import GameStateTranslator
-from training.neural_network.neural_network_example import AntVision1DExample
+from ants_ai.training.game_state.game_state import GameState
+from ants_ai.training.game_state.generator import GameStateGenerator
+from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
+from ants_ai.training.neural_network.neural_network_example import AntVision1DExample
 from ants_ai.engine.play_result import PlayResult
 import glob
 import multiprocessing as mp

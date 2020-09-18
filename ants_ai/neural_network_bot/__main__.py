@@ -1,10 +1,10 @@
 from tempfile import mkdtemp
 from uuid import uuid4
 
-import training.data_gen.tournament_runner as tr
-from engine.bot_name import BotName
-from engine.java_bot import JavaBot
-from neural_network_bot.NNBot import NNBot
+import ants_ai.training.data_gen.tournament_runner as tr
+from ants_ai.engine.bot_name import BotName
+from ants_ai.engine.java_bot import JavaBot
+from ants_ai.neural_network_bot.NNBot import NNBot
 from py4j.java_gateway import JavaGateway
 import os
 import cProfile

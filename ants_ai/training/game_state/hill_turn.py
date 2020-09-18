@@ -1,5 +1,5 @@
 from ants_ai.training.game_state.game_map import Position
-from engine.bot import BotName
+from ants_ai.engine.bot import BotName
 
 
 class HillTurn:

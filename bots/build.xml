@@ -1,0 +1,28 @@
+<project>
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+    <target name="compile">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" includeantruntime="false" destdir="build/classes">
+            <classpath>
+                <pathelement path="lib/py4j0.10.7.jar"/>
+            </classpath>
+        </javac>
+    </target>
+    <target name="jar">
+        <mkdir dir="build/jar"/>
+        <jar destfile="build/jar/bots.jar"
+             basedir="build/classes">
+            <manifest>
+                <attribute name="DependencyFinder" value="main"/>
+                <attribute name="Main-Class" value="AiHub.Main"/>
+            </manifest>
+            <fileset dir="build/classes" includes="**/*.class"/>
+            <zipgroupfileset dir="lib" includes="**/*.jar"/>
+        </jar>
+    </target>
+    <target name="run">
+        <java jar="build/jar/bots.jar" fork="true"/>
+    </target>
+</project>

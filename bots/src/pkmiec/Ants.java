@@ -1,4 +1,5 @@
 package pkmiec;
+
 import java.util.*;
 
 
@@ -6,7 +7,9 @@ import java.util.*;
  * Holds all game data and current game state.
  */
 public class Ants {
-    /** Maximum map size. */
+    /**
+     * Maximum map size.
+     */
     public static final int MAX_MAP_SIZE = 256 * 2;
 
     private final int loadTime;
@@ -24,7 +27,7 @@ public class Ants {
 
     private final int attackRadius2;
     private final Set<Tile> attackOffsets;
-    
+
     private final int aggressionRadius2;
     private final Set<Tile> aggressionOffsets;
 
@@ -38,8 +41,8 @@ public class Ants {
 
     private final Set<Tile> myAnts = new TreeSet<Tile>();
     private final Set<Tile> enemyAnts = new TreeSet<Tile>();
-    private final Map<Tile, Integer> ants = new HashMap<Tile,Integer>();
-    
+    private final Map<Tile, Integer> ants = new HashMap<Tile, Integer>();
+
     private final Set<Tile> myHills = new HashSet<Tile>();
     private final Set<Tile> enemyHills = new HashSet<Tile>();
 
@@ -50,18 +53,18 @@ public class Ants {
 
     /**
      * Creates new {@link Ants} object.
-     * 
-     * @param loadTime timeout for initializing and setting up the bot on turn 0
-     * @param turnTime timeout for a single game turn, starting with turn 1
-     * @param rows game map height
-     * @param cols game map width
-     * @param turns maximum number of turns the game will be played
-     * @param viewRadius2 squared view radius of each ant
+     *
+     * @param loadTime      timeout for initializing and setting up the bot on turn 0
+     * @param turnTime      timeout for a single game turn, starting with turn 1
+     * @param rows          game map height
+     * @param cols          game map width
+     * @param turns         maximum number of turns the game will be played
+     * @param viewRadius2   squared view radius of each ant
      * @param attackRadius2 squared attack radius of each ant
-     * @param spawnRadius2 squared spawn radius of each ant
+     * @param spawnRadius2  squared spawn radius of each ant
      */
     public Ants(int loadTime, int turnTime, int rows, int cols, int turns, int viewRadius2,
-            int attackRadius2, int spawnRadius2) {
+                int attackRadius2, int spawnRadius2) {
         this.loadTime = loadTime;
         this.turnTime = turnTime;
         this.rows = rows;
@@ -77,46 +80,46 @@ public class Ants {
 
         // calc vision offsets
         visionOffsets = new HashSet<Tile>();
-        int mx = (int)Math.sqrt(viewRadius2);
+        int mx = (int) Math.sqrt(viewRadius2);
         for (int row = -mx; row <= mx; ++row) {
-          for (int col = -mx; col <= mx; ++col) {
-            int d = row * row + col * col;
-            if (d <= viewRadius2) {
-              visionOffsets.add(new Tile(row, col));
+            for (int col = -mx; col <= mx; ++col) {
+                int d = row * row + col * col;
+                if (d <= viewRadius2) {
+                    visionOffsets.add(new Tile(row, col));
+                }
             }
-          }
         }
-        
+
         // calc attack offsets
         attackOffsets = new HashSet<Tile>();
-        mx = (int)Math.sqrt(attackRadius2);
+        mx = (int) Math.sqrt(attackRadius2);
         for (int row = -mx; row <= mx; ++row) {
-          for (int col = -mx; col <= mx; ++col) {
-            int d = row * row + col * col;
-            if (d <= attackRadius2) {
-              attackOffsets.add(new Tile(row, col));
+            for (int col = -mx; col <= mx; ++col) {
+                int d = row * row + col * col;
+                if (d <= attackRadius2) {
+                    attackOffsets.add(new Tile(row, col));
+                }
             }
-          }
         }
         // System.err.println("attack: " + attackOffsets);
-        
+
         aggressionRadius2 = (int) Math.pow((Math.sqrt(attackRadius2) + 1), 2);
         aggressionOffsets = new HashSet<Tile>();
-        mx = (int)Math.sqrt(aggressionRadius2);
+        mx = (int) Math.sqrt(aggressionRadius2);
         for (int row = -mx; row <= mx; ++row) {
-          for (int col = -mx; col <= mx; ++col) {
-            int d = row * row + col * col;
-            if (d <= aggressionRadius2) {
-              aggressionOffsets.add(new Tile(row, col));
+            for (int col = -mx; col <= mx; ++col) {
+                int d = row * row + col * col;
+                if (d <= aggressionRadius2) {
+                    aggressionOffsets.add(new Tile(row, col));
+                }
             }
-          }
         }
         // System.err.println("aggression: " + aggressionOffsets);
     }
 
     /**
      * Returns timeout for initializing and setting up the bot on turn 0.
-     * 
+     *
      * @return timeout for initializing and setting up the bot on turn 0
      */
     public int getLoadTime() {
@@ -125,7 +128,7 @@ public class Ants {
 
     /**
      * Returns timeout for a single game turn, starting with turn 1.
-     * 
+     *
      * @return timeout for a single game turn, starting with turn 1
      */
     public int getTurnTime() {
@@ -134,7 +137,7 @@ public class Ants {
 
     /**
      * Returns game map height.
-     * 
+     *
      * @return game map height
      */
     public int getRows() {
@@ -143,7 +146,7 @@ public class Ants {
 
     /**
      * Returns game map width.
-     * 
+     *
      * @return game map width
      */
     public int getCols() {
@@ -152,7 +155,7 @@ public class Ants {
 
     /**
      * Returns maximum number of turns the game will be played.
-     * 
+     *
      * @return maximum number of turns the game will be played
      */
     public int getTurns() {
@@ -161,20 +164,20 @@ public class Ants {
 
     /**
      * Returns squared view radius of each ant.
-     * 
+     *
      * @return squared view radius of each ant
      */
     public int getViewRadius2() {
-      return viewRadius2;
+        return viewRadius2;
     }
 
     public Set<Tile> getVisionOffsets() {
-      return visionOffsets;
+        return visionOffsets;
     }
 
     /**
      * Returns squared attack radius of each ant.
-     * 
+     *
      * @return squared attack radius of each ant
      */
     public int getAttackRadius2() {
@@ -186,24 +189,24 @@ public class Ants {
     }
 
     public Set<Tile> getAttackOffsets() {
-      return attackOffsets;
+        return attackOffsets;
     }
 
     public Set<Tile> getAggressionOffsets() {
-      return aggressionOffsets;
+        return aggressionOffsets;
     }
 
     public Set<Tile> getTiles(Tile loc, Set<Tile> offsets) {
-      Set<Tile> tiles = new HashSet<Tile>();
-      for (Tile offset : offsets) {
-        tiles.add(getTile(loc, offset));
-      }
-      return tiles;
+        Set<Tile> tiles = new HashSet<Tile>();
+        for (Tile offset : offsets) {
+            tiles.add(getTile(loc, offset));
+        }
+        return tiles;
     }
 
     /**
      * Returns squared spawn radius of each ant.
-     * 
+     *
      * @return squared spawn radius of each ant
      */
     public int getSpawnRadius2() {
@@ -212,7 +215,7 @@ public class Ants {
 
     /**
      * Sets turn start time.
-     * 
+     *
      * @param turnStartTime turn start time
      */
     public void setTurnStartTime(long turnStartTime) {
@@ -221,24 +224,25 @@ public class Ants {
 
     /**
      * Returns how much time the bot has still has to take its turn before timing out.
-     * 
+     *
      * @return how much time the bot has still has to take its turn before timing out
      */
     public int getTimeRemaining() {
-        return turnTime - (int)(System.currentTimeMillis() - turnStartTime);
+        return turnTime - (int) (System.currentTimeMillis() - turnStartTime);
     }
 
     /**
      * Returns location in the specified direction from the specified location.
-     * 
-     * @param tile location on the game map
+     *
+     * @param tile      location on the game map
      * @param direction direction to look up
-     * 
      * @return location in <code>direction</code> from <cod>tile</code>
      */
     public Tile getTile(Tile tile, Aim direction) {
-      if (direction == null) { return tile; }
-      
+        if (direction == null) {
+            return tile;
+        }
+
         int row = (tile.getRow() + direction.getRowDelta()) % rows;
         if (row < 0) {
             row += rows;
@@ -252,10 +256,9 @@ public class Ants {
 
     /**
      * Returns location with the specified offset from the specified location.
-     * 
-     * @param tile location on the game map
+     *
+     * @param tile   location on the game map
      * @param offset offset to look up
-     * 
      * @return location with <code>offset</code> from <cod>tile</code>
      */
     public Tile getTile(Tile tile, Tile offset) {
@@ -272,33 +275,33 @@ public class Ants {
 
     /**
      * Returns a set containing all my ants locations.
-     * 
+     *
      * @return a set containing all my ants locations
      */
     public Set<Tile> getMyAnts() {
-      return myAnts;
+        return myAnts;
     }
 
     /**
      * Returns a set containing all enemy ants locations.
-     * 
+     *
      * @return a set containing all enemy ants locations
      */
     public Set<Tile> getEnemyAnts() {
-      return enemyAnts;
+        return enemyAnts;
     }
 
-    public Map<Tile, Integer> getAnts() { 
-      return ants;
+    public Map<Tile, Integer> getAnts() {
+        return ants;
     }
 
-    public Set<Tile> getMyDeadAnts() { 
-      return myDeadAnts;
+    public Set<Tile> getMyDeadAnts() {
+        return myDeadAnts;
     }
 
     /**
      * Returns a set containing all my hills locations.
-     * 
+     *
      * @return a set containing all my hills locations
      */
     public Set<Tile> getMyHills() {
@@ -307,7 +310,7 @@ public class Ants {
 
     /**
      * Returns a set containing all enemy hills locations.
-     * 
+     *
      * @return a set containing all enemy hills locations
      */
     public Set<Tile> getEnemyHills() {
@@ -316,7 +319,7 @@ public class Ants {
 
     /**
      * Returns a set containing all food locations.
-     * 
+     *
      * @return a set containing all food locations
      */
     public Set<Tile> getFoodTiles() {
@@ -329,7 +332,7 @@ public class Ants {
 
     /**
      * Returns all orders sent so far.
-     * 
+     *
      * @return all orders sent so far
      */
     public Set<Order> getOrders() {
@@ -340,7 +343,6 @@ public class Ants {
      * Returns true if a location is visible this turn
      *
      * @param tile location on the game map
-     *
      * @return true if the location is visible
      */
     public boolean isVisible(Tile tile) {
@@ -349,10 +351,9 @@ public class Ants {
 
     /**
      * Calculates distance between two locations on the game map.
-     * 
+     *
      * @param t1 one location on the game map
      * @param t2 another location on the game map
-     * 
      * @return distance between <code>t1</code> and <code>t2</code>
      */
     public int getManhattanDistance(Tile t1, Tile t2) {
@@ -370,13 +371,12 @@ public class Ants {
         colDelta = Math.min(colDelta, cols - colDelta);
         return rowDelta * rowDelta + colDelta * colDelta;
     }
-    
+
     /**
      * Returns one or two orthogonal directions from one location to the another.
-     * 
+     *
      * @param t1 one location on the game map
      * @param t2 another location on the game map
-     * 
      * @return orthogonal directions from <code>t1</code> to <code>t2</code>
      */
     public List<Aim> getDirections(Tile t1, Tile t2) {
@@ -411,82 +411,82 @@ public class Ants {
     }
 
     public void clearAnts() {
-      myAnts.clear();
-      enemyAnts.clear();
-      ants.clear();
+        myAnts.clear();
+        enemyAnts.clear();
+        ants.clear();
     }
 
     public void clearFood() {
-      foodTiles.clear();
+        foodTiles.clear();
     }
 
     public void clearWater() {
-      waterTiles.clear();
+        waterTiles.clear();
     }
 
     public void clearHills() {
-      myHills.clear();
-      enemyHills.clear();
+        myHills.clear();
+        enemyHills.clear();
     }
 
     public void clearVision() {
-      for (int row = 0; row < rows; ++row) {
-        for (int col = 0; col < cols; ++col) {
-          visible[row][col] = false;
+        for (int row = 0; row < rows; ++row) {
+            for (int col = 0; col < cols; ++col) {
+                visible[row][col] = false;
+            }
         }
-      }
     }
 
     public void updateWater(Tile tile) {
-      waterTiles.add(tile);
+        waterTiles.add(tile);
     }
 
     public void updateFood(Tile tile) {
-      foodTiles.add(tile);
+        foodTiles.add(tile);
     }
 
     public void updateDeadAnts(int owner, Tile tile) {
-      if (owner == 0) {
-        myDeadAnts.add(tile);
-      }
+        if (owner == 0) {
+            myDeadAnts.add(tile);
+        }
     }
 
     public void updateAnts(int owner, Tile tile) {
-      if (owner > 0) {
-        enemyAnts.add(tile);
-        ants.put(tile, owner);
-      } else {
-        myAnts.add(tile);
-        ants.put(tile, owner);
-      }
+        if (owner > 0) {
+            enemyAnts.add(tile);
+            ants.put(tile, owner);
+        } else {
+            myAnts.add(tile);
+            ants.put(tile, owner);
+        }
     }
 
     public void updateHills(int owner, Tile tile) {
-      if (owner > 0) {
-        enemyHills.add(tile);
-      } else {
-        myHills.add(tile);
-      }
+        if (owner > 0) {
+            enemyHills.add(tile);
+        } else {
+            myHills.add(tile);
+        }
     }
 
     public void setVision() {
-      for (Tile antLoc : myAnts) {
-        for (Tile locOffset : visionOffsets) {
-          Tile newLoc = getTile(antLoc, locOffset);
-          visible[newLoc.getRow()][newLoc.getCol()] = true;
+        for (Tile antLoc : myAnts) {
+            for (Tile locOffset : visionOffsets) {
+                Tile newLoc = getTile(antLoc, locOffset);
+                visible[newLoc.getRow()][newLoc.getCol()] = true;
+            }
         }
-      }
     }
 
     /**
      * Issues an order by sending it to the system output.
-     * 
-     * @param myAnt map tile with my ant
+     *
+     * @param myAnt     map tile with my ant
      * @param direction direction in which to move my ant
      */
     public void issueOrder(Tile myAnt, Aim direction) {
         Order order = new Order(myAnt, direction);
         orders.add(order);
-        System.out.println(order);
+        //System.out.println(order);
     }
 }

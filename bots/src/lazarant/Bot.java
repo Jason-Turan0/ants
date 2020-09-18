@@ -1,4 +1,5 @@
 package lazarant;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ public abstract class Bot {
     public List<Order> getOrders() {
         return orders;
     }
+
     public void clearOrders() {
         orders.clear();
     }
@@ -50,7 +52,7 @@ public abstract class Bot {
                 processLine(line.toString().toLowerCase().trim());
                 line.setLength(0);
             } else {
-                line = line.append((char)c);
+                line = line.append((char) c);
             }
         }
     }
@@ -109,28 +111,28 @@ public abstract class Bot {
             switch (setupToken) {
                 case LOADTIME:
                     loadTime = scanner.nextInt();
-                break;
+                    break;
                 case TURNTIME:
                     turnTime = scanner.nextInt();
-                break;
+                    break;
                 case ROWS:
                     rows = scanner.nextInt();
-                break;
+                    break;
                 case COLS:
                     cols = scanner.nextInt();
-                break;
+                    break;
                 case TURNS:
                     turns = scanner.nextInt();
-                break;
+                    break;
                 case VIEWRADIUS2:
                     viewRadius2 = scanner.nextInt();
-                break;
+                    break;
                 case ATTACKRADIUS2:
                     attackRadius2 = scanner.nextInt();
-                break;
+                    break;
                 case SPAWNRADIUS2:
                     spawnRadius2 = scanner.nextInt();
-                break;
+                    break;
             }
         }
         this.ants = new Ants(loadTime, turnTime, rows, cols, turns, viewRadius2, attackRadius2,
@@ -163,25 +165,25 @@ public abstract class Bot {
             switch (updateToken) {
                 case W:
                     ants.addWater(row, col);
-                break;
+                    break;
                 case A:
                     if (scanner.hasNextInt()) {
                         ants.addAnt(row, col, scanner.nextInt());
                     }
-                break;
+                    break;
                 case F:
                     ants.addFood(row, col);
-                break;
+                    break;
                 case D:
                     if (scanner.hasNextInt()) {
                         ants.addDeadAnt(row, col, scanner.nextInt());
                     }
-                break;
+                    break;
                 case H:
                     if (scanner.hasNextInt()) {
                         ants.addHill(row, col, scanner.nextInt());
                     }
-                break;
+                    break;
             }
         }
         ants.afterUpdate();
@@ -196,8 +198,8 @@ public abstract class Bot {
      * Finishes turn.
      */
     public void finishTurn() {
-        System.out.println("go");
-        System.out.flush();
+        //System.out.println("go");
+        //System.out.flush();
     }
 
     private String removeComment(String line) {
@@ -225,24 +227,24 @@ public abstract class Bot {
 
     public static class MyScanner extends StringTokenizer {
 
-    public MyScanner(String line) {
-        super(line);
-    }
+        public MyScanner(String line) {
+            super(line);
+        }
 
-    public boolean hasNext() {
-        return(hasMoreTokens());
-    }
+        public boolean hasNext() {
+            return (hasMoreTokens());
+        }
 
-    public boolean hasNextInt() {
-        return(hasMoreTokens());
-    }
+        public boolean hasNextInt() {
+            return (hasMoreTokens());
+        }
 
-    public String next() {
-        return(nextToken());
-    }
+        public String next() {
+            return (nextToken());
+        }
 
-    public int nextInt() {
-        return(Integer.valueOf(next()));
+        public int nextInt() {
+            return (Integer.valueOf(next()));
+        }
     }
-}
 }

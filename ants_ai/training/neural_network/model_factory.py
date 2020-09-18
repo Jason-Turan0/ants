@@ -7,11 +7,11 @@ import tensorflow as tf
 from tensorflow.keras.layers import Dense
 from tensorflow.python.keras import Sequential, Model, Input
 from tensorflow.python.keras.layers import Dropout, Flatten, concatenate, Conv2D, MaxPooling2D
-from training.game_state.game_state import GameState
-from training.neural_network.encoders import TrainingDataset, encode_2d_examples, \
+from ants_ai.training.game_state.game_state import GameState
+from ants_ai.training.neural_network.encoders import TrainingDataset, encode_2d_examples, \
     encode_map_examples
-from training.neural_network.game_state_translator import GameStateTranslator
-from training.neural_network.neural_network_example import AntVision2DExample, AntMapExample
+from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
+from ants_ai.training.neural_network.neural_network_example import AntVision2DExample, AntMapExample
 
 
 class ModelTrainer:

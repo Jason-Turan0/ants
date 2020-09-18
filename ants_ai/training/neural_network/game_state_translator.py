@@ -1,14 +1,14 @@
 from functional import seq
-from training.game_state.ant_turn import AntTurn
+from ants_ai.training.game_state.ant_turn import AntTurn
 from ants_ai.training.game_state.game_map import Position, Direction, TerrainType
-from training.game_state.game_state import GameState
+from ants_ai.training.game_state.game_state import GameState
 from typing import List, Type, TypeVar, Dict, Tuple
 from enum import Enum
 
-from training.game_state.game_turn import GameTurn
-from training.neural_network.neural_network_example import AntVision1DExample, AntMapExample, AntVision2DExample
+from ants_ai.training.game_state.game_turn import GameTurn
+from ants_ai.training.neural_network.neural_network_example import AntVision1DExample, AntMapExample, AntVision2DExample
 
-from training.neural_network.position_state import PositionState
+from ants_ai.training.neural_network.position_state import PositionState
 
 TRAINING_VIEW_RADIUS = 77;
 TRAINING_VIEW_SIZE = 241;

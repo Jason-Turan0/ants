@@ -1,4 +1,6 @@
 from enum import IntEnum
+
+
 class PositionState(IntEnum):
     FRIENDLY_ANT = 0,
     HOSTILE_ANT = 1,
