@@ -6,3 +6,4 @@ training_data_gen/tournaments
 **/*.profile
 **/Pipfile.lock
 ants.ai.egg-info
+**/*.iml

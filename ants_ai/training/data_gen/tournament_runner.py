@@ -4,7 +4,6 @@ from uuid import uuid4
 import jsonpickle
 from ants_ai.engine.bot import Bot
 from functional import seq
-
 import ants_ai.engine.visualizer.visualize_locally
 from ants_ai.engine import visualizer
 from ants_ai.engine.ants import Ants
@@ -45,15 +44,12 @@ class TournamentRunner:
             "scenario": "store_true",
             "game_id": game_id
         }
-        # replay_path = f'{tournamentDirectory}\\{game_id}.json'
-        # html_path = replay_path.replace(".json", ".html")
         engine_options = {
             "loadtime": loadtime,
             "turntime": turntime,
             "map_file": map_path,
             "turns": turns,
-            "verbose_log": sys.stdout,
-            # "replay_log":,
+            "verbose_log":sys.stdout,
             "log_dir": "game_log",
             "log_stream": False,
             "log_input": False,

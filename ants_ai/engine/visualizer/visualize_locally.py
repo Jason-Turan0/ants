@@ -52,12 +52,7 @@ def launch(filename=None, nolaunch=False, generated_path=None):
         with open(filename, 'r') as f:
             data = f.read()
         generated_path = os.path.join(os.path.split(filename)[0], generated_path)
-
     generate(data, generated_path)
-
-    # open the page in the browser
-    #if not nolaunch:
-    #    webbrowser.open('file://'+os.path.realpath(generated_path))    
 
 if __name__ == "__main__":
     launch(nolaunch=len(sys.argv) > 1 and sys.argv[1] == '--nolaunch')
