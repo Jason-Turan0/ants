@@ -1,9 +1,10 @@
 import os
 import unittest
-from functional import seq
+
+from ants_ai.engine.map_data import MapData
 from ants_ai.training.game_state.game_map import TerrainType, Position, Direction, GameMap, create_from_map_data
 from ants_ai.training.tests.test_utils import get_test_play_result
-from ants_ai.engine.map_data import MapData
+from functional import seq
 
 
 class TestMaps(unittest.TestCase):

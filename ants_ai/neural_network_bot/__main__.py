@@ -20,7 +20,7 @@ def main():
     game_id = str(uuid4())
     profile = cProfile.Profile()
     profile.enable()
-    pr = runner.play_game_with_bots(JavaBot(game_id, gateway, BotName('hippo')),
+    pr = runner.play_game_with_bots(JavaBot(game_id, gateway, BotName('memetix')),
                                     NNBot(game_id, BotName('neural_network_bot'), model_path), game_id, map_path)
     profile.disable()
     profile.dump_stats('nn_game.profile')

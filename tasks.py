@@ -15,7 +15,7 @@ def build_java_bots(context):
     context.run('cd bots & ant clean & ant compile & ant jar')
 
 @task
-def run_tournament(context):
+def run_data_gen(context):
     context.run(f'java -jar {os.getcwd()}/bots/build/jar/bots.jar', asynchronous=True)
     context.run(f'python {os.getcwd()}/ants_ai/training/data_gen/__main__.py')
 
@@ -30,7 +30,7 @@ def run_training(context):
 
 @task
 def start_tensor_board(context):
-    context.run('tensorboard --logdir logs/fit')
+    context.run('tensorboard --logdir ants_ai/logs/fit')
 
 @task
 def start_profiler(context):

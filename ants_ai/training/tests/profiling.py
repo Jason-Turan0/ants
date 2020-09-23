@@ -1,6 +1,7 @@
 import cProfile
-from ants_ai.training.tests.test_utils import create_test_game_state
+
 from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
+from ants_ai.training.tests.test_utils import create_test_game_state
 
 game_state = create_test_game_state()
 translator = GameStateTranslator()

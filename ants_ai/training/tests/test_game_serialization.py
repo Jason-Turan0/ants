@@ -1,8 +1,9 @@
-import unittest
-from ants_ai.engine.play_result import PlayResult
-from ants_ai.engine.bot import BotName
 import os
+import unittest
+
 import jsonpickle
+from ants_ai.engine.bot import BotName
+from ants_ai.engine.play_result import PlayResult
 
 
 class SerializationTests(unittest.TestCase):

@@ -1,15 +1,14 @@
+import os
+import unittest
+from datetime import datetime
+from tempfile import mkdtemp
 from uuid import uuid4
 
-from ants_ai.engine.play_result import PlayResult
-import unittest
-from ants_ai.training.data_gen.tournament_runner import TournamentRunner, save_play_result, generate_visualization
 from ants_ai.engine.bot import BotName
-from tempfile import mkdtemp
-from py4j.java_gateway import JavaGateway
-import os
-from datetime import datetime
-
+from ants_ai.engine.play_result import PlayResult
+from ants_ai.training.data_gen.tournament_runner import TournamentRunner, save_play_result, generate_visualization
 from ants_ai.training.tests.test_utils import get_test_play_result
+from py4j.java_gateway import JavaGateway
 
 
 class TestTournament(unittest.TestCase):
@@ -41,18 +40,18 @@ class TestTournament(unittest.TestCase):
     @unittest.skip('Integration test')
     def test_run_tournament(self):
         tr = TournamentRunner(JavaGateway())
-        mapPath = f'{os.getcwd()}\\engine\\maps\\training\\small.map'
-        tournamentTime = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
-        tournamentPath = f'{os.getcwd()}\\tournaments\\{tournamentTime}'
-        tr.run_tournament(tournamentPath, mapPath)
+        map_path = f'{os.getcwd()}\\engine\\maps\\training\\small.map'
+        tournament_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
+        tournament_path = f'{os.getcwd()}\\tournaments\\{tournament_time}'
+        tr.run_tournament(tournament_path, map_path)
 
     @unittest.skip('Integration test')
     def test_generate_data(self):
         tr = TournamentRunner(JavaGateway())
-        mapPath = f'{os.getcwd()}\\training_data_gen\\engine\\maps\\training\\small.map'
-        tournamentTime = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
-        tournamentPath = f'{os.getcwd()}\\generated_data\\{tournamentTime}'
-        tr.generate_game_data(tournamentPath, mapPath, 'memetix', 200)
+        map_path = f'{os.getcwd()}\\training_data_gen\\engine\\maps\\training\\small.map'
+        tournament_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
+        tournament_path = f'{os.getcwd()}\\generated_data\\{tournament_time}'
+        tr.generate_game_data(tournament_path, map_path, 'memetix', 200)
 
 
 if __name__ == '__main__':

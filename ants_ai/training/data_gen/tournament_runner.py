@@ -76,17 +76,17 @@ class TournamentRunner:
         game = Ants(game_options)
         return run_game(game, [bot0, bot1], engine_options)
 
-    def play_tournament_games(self, tournament_directory: str, map_path: str,
-                              game_settings: List[Tuple[str, str, int]]):
+    def play_games(self, save_path: str, map_path: str,
+                   game_settings: List[Tuple[str, str, int]]):
         print(f'Playing {len(game_settings)} games')
 
-        playResults: List[PlayResult] = seq(game_settings).map(
+        play_results: List[PlayResult] = seq(game_settings).map(
             lambda tuple: self.play_game(BotName(tuple[0]), BotName(tuple[1]), str(uuid4()), map_path)).list()
 
-        os.makedirs(tournament_directory)
-        for pr in playResults:
-            replay_path = f'{tournament_directory}/{pr.game_id}.json'
-            html_path = f'{tournament_directory}/{pr.game_id}.html'
+        os.makedirs(save_path)
+        for pr in play_results:
+            replay_path = f'{save_path}/{pr.game_id}.json'
+            html_path = f'{save_path}/{pr.game_id}.html'
             save_play_result(pr, replay_path)
             generate_visualization(replay_path, html_path)
 
@@ -100,13 +100,22 @@ class TournamentRunner:
                 if pr.score[botIndex] > pr.score[otherBotIndex]: return 2
                 if pr.score[botIndex] < pr.score[otherBotIndex]: return 0
 
-            games_played = seq(playResults) \
+            def determine_winner(bot: BotName, pr: PlayResult):
+                botIndex = pr.playernames.index(bot.bot_name)
+                otherBotIndex = 1 if botIndex == 0 else 0
+                return 1 if pr.score[botIndex] > pr.score[otherBotIndex] else 0
+
+            games_played = seq(play_results) \
                 .count(lambda pr: bot.bot_name in pr.playernames)
-            bot_score = seq(playResults) \
+            bot_score = seq(play_results) \
                 .filter(lambda pr: bot.bot_name in pr.playernames) \
                 .map(lambda pr: determine_score(bot, pr)) \
                 .sum()
-            return (bot.bot_name, games_played, bot_score)
+            games_won = seq(play_results) \
+                .filter(lambda pr: bot.bot_name in pr.playernames) \
+                .map(lambda pr: determine_winner(bot, pr)) \
+                .sum()
+            return (bot.bot_name, games_played, 0 if games_played == 0 else (games_won / games_played) * 100, bot_score)
 
         final_score = seq(self.all_bots) \
             .map(sumTournamentScore) \
@@ -114,27 +123,25 @@ class TournamentRunner:
             .list()
         print(final_score)
 
-    def generate_game_data(self, tournament_directory, map_path, playing_bot, number_of_games):
+    def generate_game_data(self, save_path: str, map_path: str, playing_bot: str, game_count: int):
         other_bots = [b for b in self.all_bots if b != playing_bot]
 
         def create_tuple(game_index):
             playing_bot_first = (playing_bot, other_bots[game_index % len(other_bots)], game_index)
             playing_bot_second = (other_bots[game_index % len(other_bots)], playing_bot, game_index)
-            return playing_bot_first if (game_index < number_of_games / 2) else playing_bot_second
+            return playing_bot_first if (game_index < game_count / 2) else playing_bot_second
 
-        game_settings = [create_tuple(game_index) for game_index in range(number_of_games)]
-        self.play_tournament_games(tournament_directory, map_path, game_settings)
+        game_settings = [create_tuple(game_index) for game_index in range(game_count)]
+        self.play_games(save_path, map_path, game_settings)
 
-    def run_tournament(self, tournamentDirectory, mapPath):
+    def run_tournament(self, save_path, map_path, game_count):
         allBots = ['hippo', 'lazarant', 'xathis', 'speedyBot', 'memetix', 'pkmiec']
-        # allBots = ['hippo', 'lazarant', 'xathis', 'speedyBot',]
-        gamesToPlay = 6
         game_settings = seq(combinations(allBots, 2)) \
-            .flat_map(lambda combo: seq(range(0, gamesToPlay)) \
-                      .map(lambda game_index: (combo[0], combo[1], game_index) if (game_index < 3) else (
+            .flat_map(lambda combo: seq(range(0, game_count)) \
+                      .map(lambda game_index: (combo[0], combo[1], game_index) if (game_index < game_count / 2) else (
             combo[1], combo[0], game_index))) \
             .list()
-        self.play_tournament_games(tournamentDirectory, mapPath, game_settings)
+        self.play_games(save_path, map_path, game_settings)
 
 
 def save_play_result(result: PlayResult, replay_path: str):

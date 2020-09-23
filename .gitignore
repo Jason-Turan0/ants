@@ -1,7 +1,9 @@
 ﻿.idea
 out
 venv
-training_data_gen/tournaments
+ants_ai/model_discovery*
+ants_ai/logs
+tournaments
 **/*.class
 **/*.profile
 **/Pipfile.lock

@@ -1,24 +1,31 @@
 from pprint import pprint
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Tuple
 
 import numpy
-from functional import seq
+import pandas as pd
 from ants_ai.training.game_state.game_map import Direction, Position
 from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
 from ants_ai.training.neural_network.neural_network_example import AntVision1DExample, AntMapExample, AntVision2DExample
 from ants_ai.training.neural_network.position_state import PositionState
+from functional import seq
 from numpy import ndarray
-import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 
 
-class TrainingDataset:
+class LabeledDataset:
     def __init__(self, features: Union[ndarray, List[ndarray]], labels: ndarray):
         self.features = features
         self.labels = labels
 
 
-def encode_flat_examples(examples: List[AntVision1DExample]) -> TrainingDataset:
+class TrainingDataset:
+    def __init__(self, train: LabeledDataset, cross_val: LabeledDataset, test: LabeledDataset):
+        self.train = train
+        self.cross_val = cross_val
+        self.test = test
+
+
+def encode_flat_examples(examples: List[AntVision1DExample]) -> LabeledDataset:
     stringData = [[f.name for f in ex.features] for ex in examples]
     categories = [[m for m in PositionState.__members__] for i in range(len(examples[0].features))]
     columns = [f'pos_{num}' for num, ex in enumerate(examples[0].features)]
@@ -32,15 +39,15 @@ def encode_flat_examples(examples: List[AntVision1DExample]) -> TrainingDataset:
     one_hot_label_encoder = OneHotEncoder(sparse=False, categories=[label_categories])
     one_hot_label_encoder.fit(label_df)
     encoded_labels = one_hot_label_encoder.transform(label_df)
-    return TrainingDataset(encoded_features, encoded_labels)
+    return LabeledDataset(encoded_features, encoded_labels)
 
 
-def encode_1d_examples(examples: List[AntVision1DExample]) -> TrainingDataset:
+def encode_1d_examples(examples: List[AntVision1DExample]) -> LabeledDataset:
     t = GameStateTranslator()
     features = numpy.array(
         [[t.convert_enum_to_array(f, PositionState) for f in ex.features] for ex in examples])
     labels = numpy.array([t.convert_enum_to_array(ex.label, Direction) for ex in examples])
-    return TrainingDataset(features, labels)
+    return LabeledDataset(features, labels)
 
 
 def down_sample(gst: GameStateTranslator, ps: PositionState, channel_count: int):
@@ -61,6 +68,7 @@ def down_sample(gst: GameStateTranslator, ps: PositionState, channel_count: int)
 
 def encode_2d_features(examples: List[Dict[Position, PositionState]], gst: GameStateTranslator,
                        channel_count: int) -> ndarray:
+    if len(examples) == 0: return numpy.empty([0, 12, 12, 7], dtype=int)
     first_feature = examples[0]
     rows = seq(first_feature.keys()).group_by(lambda p: p.row).map(lambda t: t[0]).order_by(lambda r: r).to_list()
     columns = seq(first_feature.keys()).group_by(lambda p: p.column).map(lambda t: t[0]).order_by(lambda c: c).to_list()
@@ -77,14 +85,14 @@ def encode_2d_features(examples: List[Dict[Position, PositionState]], gst: GameS
     return encoded_features
 
 
-def encode_2d_examples(examples: List[AntVision2DExample], channel_count: int) -> TrainingDataset:
+def encode_2d_examples(examples: List[AntVision2DExample], channel_count: int) -> Tuple[ndarray, ndarray]:
     gst = GameStateTranslator()
     features = encode_2d_features(seq(examples).map(lambda e: e.features).to_list(), gst, channel_count)
-    labels = [gst.convert_enum_to_array(ex.label, Direction) for ex in examples]
-    return TrainingDataset(features, numpy.array(labels))
+    labels = numpy.array([gst.convert_enum_to_array(ex.label, Direction) for ex in examples])
+    return features, labels
 
 
-def encode_map_examples(examples: List[AntMapExample], channel_count: int) -> TrainingDataset:
+def encode_map_examples(examples: List[AntMapExample], channel_count: int) -> LabeledDataset:
     gst = GameStateTranslator()
     assert (len(examples) > 0)
     ex = examples[0]
@@ -95,4 +103,4 @@ def encode_map_examples(examples: List[AntMapExample], channel_count: int) -> Tr
                 key = Position(r, c)
                 features[e_index, r, c] = down_sample(gst, e.features[key], channel_count)
     labels = [gst.convert_enum_to_array(ex.label, Direction) for ex in examples]
-    return TrainingDataset(numpy.array(features), numpy.array(labels))
+    return LabeledDataset(numpy.array(features), numpy.array(labels))

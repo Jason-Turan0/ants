@@ -16,6 +16,7 @@ setup(
     packages=find_packages(exclude=('tests', 'docs')),
     install_requires=[
         'py4j', 'PyFunctional', 'jsonpickle', 'snakeviz',
-        'sklearn', 'tensorflow', 'pandas', 'pydot',
-        'graphviz', 'matplotlib', 'invoke', 'pylint']
+        'sklearn', 'tensorflow', 'keras-tuner', 'pandas', 'pydot',
+        'graphviz', 'matplotlib', 'invoke', 'pylint'
+    ]
 )
