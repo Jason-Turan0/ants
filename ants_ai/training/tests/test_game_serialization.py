@@ -9,8 +9,8 @@ from ants_ai.engine.play_result import PlayResult
 class SerializationTests(unittest.TestCase):
 
     def test_DeserializeFromFile(self):
-        dataPath = f'{os.getcwd()}\\training\\tests\\test_data\\PlayResult.json'
-        f = open(dataPath, "r")
+        data_path = f'{os.getcwd()}\\training\\tests\\test_data\\PlayResult.json'
+        f = open(data_path, "r")
         json_data = f.read()
         f.close()
         playResult: (PlayResult) = jsonpickle.decode(json_data)

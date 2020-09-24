@@ -90,20 +90,20 @@ class TournamentRunner:
             save_play_result(pr, replay_path)
             generate_visualization(replay_path, html_path)
 
-        def sumTournamentScore(botType: str):
+        def sum_tournament_score(botType: str):
             bot = BotName(botType)
 
             def determine_score(bot: BotName, pr: PlayResult):
-                botIndex = pr.playernames.index(bot.bot_name)
-                otherBotIndex = 1 if botIndex == 0 else 0
-                if pr.score[botIndex] == pr.score[otherBotIndex]: return 1
-                if pr.score[botIndex] > pr.score[otherBotIndex]: return 2
-                if pr.score[botIndex] < pr.score[otherBotIndex]: return 0
+                bot_index = pr.playernames.index(bot.bot_name)
+                other_bot_index = 1 if bot_index == 0 else 0
+                if pr.score[bot_index] == pr.score[other_bot_index]: return 1
+                if pr.score[bot_index] > pr.score[other_bot_index]: return 2
+                if pr.score[bot_index] < pr.score[other_bot_index]: return 0
 
             def determine_winner(bot: BotName, pr: PlayResult):
-                botIndex = pr.playernames.index(bot.bot_name)
-                otherBotIndex = 1 if botIndex == 0 else 0
-                return 1 if pr.score[botIndex] > pr.score[otherBotIndex] else 0
+                bot_index = pr.playernames.index(bot.bot_name)
+                other_bot_index = 1 if bot_index == 0 else 0
+                return 1 if pr.score[bot_index] > pr.score[other_bot_index] else 0
 
             games_played = seq(play_results) \
                 .count(lambda pr: bot.bot_name in pr.playernames)
@@ -115,10 +115,10 @@ class TournamentRunner:
                 .filter(lambda pr: bot.bot_name in pr.playernames) \
                 .map(lambda pr: determine_winner(bot, pr)) \
                 .sum()
-            return (bot.bot_name, games_played, 0 if games_played == 0 else (games_won / games_played) * 100, bot_score)
+            return bot.bot_name, games_played, 0 if games_played == 0 else (games_won / games_played) * 100, bot_score
 
         final_score = seq(self.all_bots) \
-            .map(sumTournamentScore) \
+            .map(sum_tournament_score) \
             .sorted(key=lambda tuple: tuple[1], reverse=True) \
             .list()
         print(final_score)

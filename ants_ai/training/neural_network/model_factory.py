@@ -1,19 +1,31 @@
-import multiprocessing as mp
+import os
+from abc import abstractmethod
+from enum import Enum
 from math import floor
 from random import shuffle
-from typing import List, Tuple, Callable
+from typing import List, Dict, Union, Tuple, Callable
 
-import tensorflow as tf
+import jsonpickle
+import sklearn as sk
+from ants_ai.training.neural_network.encoders import TrainingDataset
 from ants_ai.training.game_state.game_state import GameState
-from ants_ai.training.neural_network.encoders import LabeledDataset, encode_2d_examples, \
-    encode_map_examples, TrainingDataset
 from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
-from ants_ai.training.neural_network.neural_network_example import AntVision2DExample, AntMapExample
-from kerastuner import HyperParameters
-from model_trainer import ModelTrainer
-from tensorflow.keras.layers import Dense
-from tensorflow.python.keras import Sequential, Model, Input
-from tensorflow.python.keras.layers import Dropout, Flatten, concatenate, Conv2D, MaxPooling2D
+from ants_ai.training.game_state.generator import GameStateGenerator
+import ants_ai.training.neural_network.encoders as enc
+
+import multiprocessing as mp
+
+from functional import seq
+from kerastuner import HyperParameters, HyperParameter
+from ants_ai.training.neural_network.model_hyper_parameter import ModelHyperParameter
+from tensorflow.python.keras.models import Model
+
+import numpy as np
+
+
+class EncodingType(Enum):
+    ANT_VISION_2D = 1
+    MAP_2D = 2
 
 
 def shuffle_and_split(examples: List):
@@ -26,110 +38,157 @@ def shuffle_and_split(examples: List):
     return train_examples, cv_examples, text_examples
 
 
-def print_layers(model: Model):
-    for i, l in enumerate(model.layers):
-        print(f'{i}. {l.name}')
-        print(f'In {l.input_shape}')
-        print(f'Out {l.output_shape}')
+def load_game_state(path: str) -> GameState:
+    with open(path, "r") as f:
+        json_data = f.read()
+        pr = jsonpickle.decode(json_data)
+        gsg = GameStateGenerator()
+        return gsg.generate(pr)
 
 
-def map_to_input(task: Tuple[str, str, GameState]):
-    bot_name, translator_method_name, gs = task
-    t = GameStateTranslator()
-    m = getattr(t, translator_method_name)
-    return m(bot_name, [gs])
+def map_to_input(task: Tuple[str, EncodingType, str]) -> Tuple[np.ndarray, np.ndarray]:
+    bot_name, type, game_path = task
+    channel_count = 7
+    gst = GameStateTranslator()
+    if type == EncodingType.ANT_VISION_2D:
+        feature_cache_path = game_path.replace('.json', f'_ANT_VISION_2D_FEATURES_{bot_name}_{channel_count}.npy')
+        label_cache_path = game_path.replace('.json', f'_ANT_VISION_2D_LABELS_{bot_name}_{channel_count}.npy')
+        if os.path.exists(feature_cache_path):
+            return np.load(feature_cache_path), np.load(label_cache_path)
+        gs = load_game_state(game_path)
+        try:
+            ant_vision = gst.convert_to_2d_ant_vision(bot_name, [gs])
+            features, labels = enc.encode_2d_examples(ant_vision, channel_count)
+            print(f'Saving {feature_cache_path}')
+            np.save(feature_cache_path, features)
+            np.save(label_cache_path, labels)
+            return features, labels
+        except:
+            print(f'Failed to load ${game_path}')
+            return np.empty([0, 12, 12, 7]), np.empty([0, 5])
+
+    elif type == EncodingType.MAP_2D:
+        feature_cache_path = game_path.replace('.json', f'_ANT_VISION_2DMAP_FEATURES_{bot_name}_{channel_count}.npy')
+        label_cache_path = game_path.replace('.json', f'_ANT_VISION_2DMAP_LABELS_{bot_name}_{channel_count}.npy')
+        if os.path.exists(feature_cache_path):
+            return np.load(feature_cache_path), np.load(label_cache_path)
+        gs = load_game_state(game_path)
+        try:
+            ant_vision = gst.convert_to_antmap(bot_name, [gs])
+            features, labels = enc.encode_map_examples(ant_vision, channel_count)
+            print(f'Saving {feature_cache_path}')
+            np.save(feature_cache_path, features)
+            np.save(label_cache_path, labels)
+            return features, labels
+        except:
+            print(f'Failed to load ${game_path}')
+            return np.empty([0, 43, 39, 7]), np.empty([0, 5])
+    else:
+        raise NotImplementedError()
 
 
-def create_test_examples(bot_name: str, translator_method_name: str, game_states: List[GameState]):
-    tasks = [(bot_name, translator_method_name, gs)
-             for gs in game_states]
-    pool = mp.Pool(mp.cpu_count() - 1)
-    results = pool.map(map_to_input, tasks)
-    pool.close()
-    examples = [item for sublist in results for item in sublist]
-    print(f'Generated {len(examples)} examples')
-    return examples
+def combine_ndarrays(encoded_results: List[Tuple[np.ndarray, np.ndarray]]):
+    row_count = seq(encoded_results).map(lambda t: t[0].shape[0]).sum()
+    features = np.empty([row_count, *encoded_results[0][0].shape[1:]])
+    labels = np.empty([row_count, *encoded_results[0][1].shape[1:]])
+    current_row = 0
+    for r in encoded_results:
+        for j in range(r[0].shape[0]):
+            features[current_row] = r[0][j]
+            labels[current_row] = r[1][j]
+            current_row += 1
+    return row_count, features, labels
 
 
-def create_game_state_2d_encoder(bot_name: str, number_of_channels: int):
-    def game_state_encoder(game_states: List[GameState]) -> TrainingDataset:
-        examples: List[AntVision2DExample] = create_test_examples(bot_name, 'convert_to_2d_ant_vision', game_states)
-        (train_examples, cv_examples, test_examples) = shuffle_and_split(examples)
-        train_data = encode_2d_examples(train_examples, number_of_channels)
-        cv_data = encode_2d_examples(cv_examples, number_of_channels)
-        test_data = encode_2d_examples(test_examples, number_of_channels)
-        return TrainingDataset(train_data, cv_data, test_data)
+def create_test_examples(bot_name: str, game_paths: List[str], enc_type: EncodingType):
+    print(f'Loading {len(game_paths)} games')
+    pool_count = min(mp.cpu_count() - 1, len(game_paths))
+    if enc_type == EncodingType.ANT_VISION_2D:
+        tasks = [(bot_name, enc_type, gp) for gp in game_paths]
+        pool = mp.Pool(pool_count)
+        encoded_results: List[Tuple[np.ndarray, np.ndarray]] = pool.map(map_to_input, tasks)
+        pool.close()
+        print(f'Loaded {len(game_paths)} games')
+        row_count, features, labels = combine_ndarrays(encoded_results)
+        print(f'Loaded {row_count} examples')
+        shuffled_features, shuffled_labels = sk.utils.shuffle(features, labels)
+        train_cutoff = floor(row_count * .60)
+        cv_cutoff = floor(row_count * .80)
+        train_examples = enc.LabeledDataset(shuffled_features[0:train_cutoff], shuffled_labels[0:train_cutoff])
+        cv_examples = enc.LabeledDataset(shuffled_features[train_cutoff:cv_cutoff],
+                                         shuffled_labels[train_cutoff:cv_cutoff])
+        test_examples = enc.LabeledDataset(shuffled_features[cv_cutoff:], shuffled_labels[cv_cutoff:])
+        return TrainingDataset(train_examples, cv_examples, test_examples)
+    elif enc_type == EncodingType.MAP_2D:
+        tasks = [(bot_name, EncodingType.ANT_VISION_2D, gp) for gp in game_paths]
+        pool = mp.Pool(pool_count)
+        av_encoded_results: List[Tuple[np.ndarray, np.ndarray]] = pool.map(map_to_input, tasks)
+        pool.close()
 
-    return game_state_encoder
-
-
-# Helpful link
-# https://www.quora.com/How-can-I-calculate-the-size-of-output-of-convolutional-layer
-def create_conv_2d_trainer(bot_name: str) -> ModelTrainer:
-    return ModelTrainer('conv_2d', create_conv_2d_model, create_discoverable_conv_2d_model,
-                        create_game_state_2d_encoder(bot_name, 7))
-
-
-# def create_dense_2d_model(learning_rate: float, bot_name: str):
-#     model = Sequential([
-#         Input(shape=(12, 12, 7)),
-#         Dense(64, activation=tf.nn.relu),
-#         Flatten(),
-#         Dropout(0.1),
-#         Dense(5, activation=tf.nn.softmax),
-#     ])
-#
-#     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
-#                   loss=tf.keras.losses.CategoricalCrossentropy(),
-#                   metrics=[tf.keras.metrics.categorical_accuracy])
-#     return ModelTrainer(model, 'dense_2d', create_game_state_2d_encoder(bot_name, 7), {'learning_rate': learning_rate})
-
-
-def create_hybrid_model(learning_rate: float, strides: int, bot_name: str, channel_count: int):
-    input_ant_view = Input(shape=(12, 12, channel_count), name='input_ant_view')
-    avm = Conv2D(32, 2, strides=strides, activation=tf.nn.relu, name='Conv2D_av1_32')(input_ant_view)
-    avm = Conv2D(64, 3, strides=strides, activation=tf.nn.relu, name='Conv2D_av2_64')(avm)
-    avm = Conv2D(128, 2, strides=strides, activation=tf.nn.relu, name='Conv2D_av3_128')(avm)
-    avm = Flatten(name='Flatten_av')(avm)
-    avm = Dense(64, activation=tf.nn.relu, name='Dense_av')(avm)
-    avm = Model(inputs=input_ant_view, outputs=avm)
-
-    input_map_view = Input(shape=(43, 39, channel_count), name='input_map_view')
-    mvm = MaxPooling2D(2, name='MaxPool_mv')(input_map_view)
-    mvm = Conv2D(32, 2, strides=strides, activation=tf.nn.relu, name='Conv2D_mv1_32')(mvm)
-    mvm = Conv2D(64, 3, strides=strides, activation=tf.nn.relu, name='Conv2D_mv2_64')(mvm)
-    mvm = Conv2D(128, 2, strides=strides, activation=tf.nn.relu, name='Conv2D_mv3_128')(mvm)
-    mvm = Flatten(name='Flatten_mv')(mvm)
-    mvm = Dense(64, activation=tf.nn.relu, name='Dense_wmv')(mvm)
-    mvm = Model(inputs=input_map_view, outputs=mvm)
-    combined = concatenate([avm.output, mvm.output])
-    output = Dense(5, activation=tf.nn.softmax)(combined)
-    model = Model(inputs=[avm.input, mvm.input], outputs=output)
-    print_layers(model)
-
-    loss_fn = tf.keras.losses.CategoricalCrossentropy()
-    opt = tf.keras.optimizers.Adam(learning_rate=learning_rate)
-    model.compile(optimizer=opt,
-                  loss=loss_fn,
-                  metrics=[tf.keras.metrics.categorical_accuracy])
-
-    def encoder(game_states: List[GameState]) -> TrainingDataset:
-        examples_2d: List[AntVision2DExample] = create_test_examples(bot_name, 'convert_to_2d_ant_vision', game_states)
-        examples_map: List[AntMapExample] = create_test_examples(bot_name, 'convert_to_antmap', game_states)
-        combined = [(examples_2d[i], examples_map[i]) for i in range(len(examples_2d))]
-        (train_examples, cv_examples, test_examples) = shuffle_and_split(combined)
-        av_encoded_train = encode_2d_examples([y[0] for y in train_examples], channel_count)
-        map_encoded_train = encode_map_examples([y[1] for y in train_examples], channel_count)
-        av_encoded_cv = encode_2d_examples([y[0] for y in cv_examples], channel_count)
-        map_encoded_cv = encode_map_examples([y[1] for y in cv_examples], channel_count)
-        av_encoded_test = encode_2d_examples([y[0] for y in test_examples], channel_count)
-        map_encoded_test = encode_map_examples([y[1] for y in test_examples], channel_count)
+        tasks = [(bot_name, EncodingType.MAP_2D, gp) for gp in game_paths]
+        pool = mp.Pool(pool_count)
+        map_encoded_results: List[Tuple[np.ndarray, np.ndarray]] = pool.map(map_to_input, tasks)
+        pool.close()
+        print(f'Loaded {len(game_paths)} games')
+        av_row_count, av_features, av_labels = combine_ndarrays(av_encoded_results)
+        map_row_count, map_features, map_labels = combine_ndarrays(map_encoded_results)
+        if av_row_count != map_row_count: raise ValueError(f'{av_row_count} does not match {map_row_count}')
+        print(f'Loaded {av_row_count} examples')
+        shuffled_av_features, shuffled_av_labels, shuffled_map_features, shuffled_map_labels = \
+            sk.utils.shuffle(av_features, av_labels, map_features, map_labels)
+        train_cutoff = floor(av_row_count * .60)
+        cv_cutoff = floor(av_row_count * .80)
 
         return TrainingDataset(
-            LabeledDataset([av_encoded_train.features, map_encoded_train.features], av_encoded_train.labels),
-            LabeledDataset([av_encoded_cv.features, map_encoded_cv.features], av_encoded_cv.labels),
-            LabeledDataset([av_encoded_test.features, map_encoded_test.features], av_encoded_test.labels))
+            enc.LabeledDataset([shuffled_av_features[:train_cutoff], shuffled_map_features[:train_cutoff]],
+                               shuffled_av_labels[:train_cutoff]),
+            enc.LabeledDataset(
+                [shuffled_av_features[train_cutoff:cv_cutoff], shuffled_map_features[train_cutoff:cv_cutoff]],
+                shuffled_av_labels[train_cutoff:cv_cutoff]),
+            enc.LabeledDataset([shuffled_av_features[cv_cutoff:], shuffled_map_features[cv_cutoff:]],
+                               shuffled_av_labels[cv_cutoff:])
+        )
+    else:
+        raise NotImplementedError()
 
-    raise NotImplementedError('LATER')
-    # return ModelTrainer(model, 'hybrid_2d', encoder,
-    #                    {'learning_rate': learning_rate, 'strides': strides, 'channel_count': channel_count})
+
+class ModelFactory:
+    def __init__(self, model_name: str, bot_name: str, default_parameters_values: Dict[str, ModelHyperParameter]):
+        self.model_name = model_name
+        self.bot_name = bot_name
+        self.default_parameters_values = default_parameters_values
+
+    @abstractmethod
+    def encode_games(self, game_paths: List[str]) -> TrainingDataset:
+        pass
+
+    @abstractmethod
+    def construct_model(self, tuned_params: Dict[str, Union[int, float]]) -> Model:
+        pass
+
+    @abstractmethod
+    def construct_discover_model(self, hps: HyperParameters) -> Model:
+        pass
+
+    def encode_game_states(self, game_paths: List[str], enc_type: EncodingType) -> TrainingDataset:
+        return create_test_examples(self.bot_name, game_paths, enc_type)
+
+    def get_param_value(self, name: str, model_params: Dict[str, Union[int, float]]):
+        return model_params.get(name) \
+            if name in model_params.keys() \
+            else self.default_parameters_values[name].default_value
+
+    def get_model_params(self, tuned_model_params: Dict[str, Union[int, float]]):
+        return {
+            k: tuned_model_params.get(k)
+            if k in tuned_model_params.keys()
+            else self.default_parameters_values[k].default_value
+            for k in self.default_parameters_values.keys()
+        }
+
+    def get_hyper_param(self, name: str, param_factory: Callable[[Union[int, float]], HyperParameter]):
+        config = self.default_parameters_values[name]
+        if config.is_active:
+            return param_factory(config.default_value)
+        else:
+            return config.default_value

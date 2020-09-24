@@ -24,6 +24,11 @@ class TrainingDataset:
         self.cross_val = cross_val
         self.test = test
 
+    def get_training_length(self) -> int:
+        return self.train.features.shape[0] \
+            if isinstance(self.train.features, ndarray) \
+            else self.train.features[0].shape[0]
+
 
 def encode_flat_examples(examples: List[AntVision1DExample]) -> LabeledDataset:
     stringData = [[f.name for f in ex.features] for ex in examples]
@@ -92,7 +97,11 @@ def encode_2d_examples(examples: List[AntVision2DExample], channel_count: int) -
     return features, labels
 
 
-def encode_map_examples(examples: List[AntMapExample], channel_count: int) -> LabeledDataset:
+def decode_2d_examples(encoded_examples: Tuple[ndarray, ndarray]) -> Tuple[List[AntVision2DExample], int]:
+    return None
+
+
+def encode_map_examples(examples: List[AntMapExample], channel_count: int) -> Tuple[ndarray, ndarray]:
     gst = GameStateTranslator()
     assert (len(examples) > 0)
     ex = examples[0]
@@ -103,4 +112,4 @@ def encode_map_examples(examples: List[AntMapExample], channel_count: int) -> La
                 key = Position(r, c)
                 features[e_index, r, c] = down_sample(gst, e.features[key], channel_count)
     labels = [gst.convert_enum_to_array(ex.label, Direction) for ex in examples]
-    return LabeledDataset(numpy.array(features), numpy.array(labels))
+    return numpy.array(features), numpy.array(labels)

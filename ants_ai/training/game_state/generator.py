@@ -1,3 +1,4 @@
+import jsonpickle
 from ants_ai.engine.play_result import PlayResult
 from ants_ai.training.game_state.game_state import GameState
 from functional import seq
@@ -56,3 +57,9 @@ class GameStateGenerator:
         return GameState(play_result.game_id, game_turns, game_map, play_result.replaydata.viewradius2,
                          bots[play_result.rank[0]],
                          play_result.replaydata.ranking_turn)
+
+    def generate_from_file(self, play_result_path: str):
+        with open(play_result_path, "r") as f:
+            json_data = f.read()
+            pr = jsonpickle.decode(json_data)
+            return self.generate(pr)
