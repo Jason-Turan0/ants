@@ -89,8 +89,8 @@ def map_to_input(task: Tuple[str, EncodingType, str]) -> Tuple[np.ndarray, np.nd
 
 def combine_ndarrays(encoded_results: List[Tuple[np.ndarray, np.ndarray]]):
     row_count = seq(encoded_results).map(lambda t: t[0].shape[0]).sum()
-    features = np.empty([row_count, *encoded_results[0][0].shape[1:]])
-    labels = np.empty([row_count, *encoded_results[0][1].shape[1:]])
+    features = np.empty([row_count, *encoded_results[0][0].shape[1:]], dtype=int)
+    labels = np.empty([row_count, *encoded_results[0][1].shape[1:]], dtype=int)
     current_row = 0
     for r in encoded_results:
         for j in range(r[0].shape[0]):
@@ -100,7 +100,7 @@ def combine_ndarrays(encoded_results: List[Tuple[np.ndarray, np.ndarray]]):
     return row_count, features, labels
 
 
-def create_test_examples(bot_name: str, game_paths: List[str], enc_type: EncodingType):
+def create_test_examples(bot_name: str, game_paths: List[str], enc_type: EncodingType) -> TrainingDataset:
     print(f'Loading {len(game_paths)} games')
     pool_count = min(mp.cpu_count() - 1, len(game_paths))
     if enc_type == EncodingType.ANT_VISION_2D:
@@ -163,20 +163,14 @@ class ModelFactory:
         pass
 
     @abstractmethod
-    def construct_model(self, tuned_params: Dict[str, Union[int, float]]) -> Model:
+    def construct_model(self, tuned_params: Dict[str, Union[int, float]], hps: HyperParameters = None) -> Model:
         pass
 
-    @abstractmethod
     def construct_discover_model(self, hps: HyperParameters) -> Model:
-        pass
+        return self.construct_model({}, hps)
 
     def encode_game_states(self, game_paths: List[str], enc_type: EncodingType) -> TrainingDataset:
         return create_test_examples(self.bot_name, game_paths, enc_type)
-
-    def get_param_value(self, name: str, model_params: Dict[str, Union[int, float]]):
-        return model_params.get(name) \
-            if name in model_params.keys() \
-            else self.default_parameters_values[name].default_value
 
     def get_model_params(self, tuned_model_params: Dict[str, Union[int, float]]):
         return {
@@ -185,10 +179,3 @@ class ModelFactory:
             else self.default_parameters_values[k].default_value
             for k in self.default_parameters_values.keys()
         }
-
-    def get_hyper_param(self, name: str, param_factory: Callable[[Union[int, float]], HyperParameter]):
-        config = self.default_parameters_values[name]
-        if config.is_active:
-            return param_factory(config.default_value)
-        else:
-            return config.default_value

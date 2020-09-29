@@ -1,3 +1,4 @@
+from math import floor
 from pprint import pprint
 from typing import List, Union, Dict, Tuple
 
@@ -97,8 +98,31 @@ def encode_2d_examples(examples: List[AntVision2DExample], channel_count: int) -
     return features, labels
 
 
-def decode_2d_examples(encoded_examples: Tuple[ndarray, ndarray]) -> Tuple[List[AntVision2DExample], int]:
-    return None
+def decode_ant_vision_2d_examples(encoded_examples: Tuple[ndarray, ndarray]) -> List[AntVision2DExample]:
+    gst = GameStateTranslator()
+    features, labels = encoded_examples
+    feature_example_count = features.shape[0]
+    feature_row_min = 0 - floor(features.shape[1] / 2)
+    feature_row_max = 0 + floor(features.shape[1] / 2)
+    feature_col_min = 0 - floor(features.shape[2] / 2)
+    feature_col_max = 0 + floor(features.shape[2] / 2)
+    row_nums = seq(range(feature_row_min, feature_row_max)).to_list()
+    col_nums = seq(range(feature_col_min, feature_col_max)).to_list()
+    if features.shape[3] != 7: raise ValueError(
+        'Only implemented for 7 channel encoding since down_sampling eliminates information')
+
+    items = []
+    for ex_index in range(feature_example_count):
+        example_features: Dict[Position, PositionState] = {}
+        for row_index, row_num in enumerate(row_nums):
+            for col_index, col_num in enumerate(col_nums):
+                position = Position(row_num, col_num)
+                enum_val = gst.convert_array_to_enum(features[ex_index, row_index, col_index].tolist(), PositionState)
+                example_features[position] = enum_val
+
+        direction = gst.convert_array_to_enum(labels[ex_index].tolist(), Direction)
+        items.append(AntVision2DExample(example_features, direction))
+    return items
 
 
 def encode_map_examples(examples: List[AntMapExample], channel_count: int) -> Tuple[ndarray, ndarray]:
@@ -113,3 +137,22 @@ def encode_map_examples(examples: List[AntMapExample], channel_count: int) -> Tu
                 features[e_index, r, c] = down_sample(gst, e.features[key], channel_count)
     labels = [gst.convert_enum_to_array(ex.label, Direction) for ex in examples]
     return numpy.array(features), numpy.array(labels)
+
+
+def decode_map_examples(encoded_examples: Tuple[ndarray, ndarray]) -> List[AntMapExample]:
+    features, labels = encoded_examples
+    items = []
+    gst = GameStateTranslator()
+    row_count = features.shape[1]
+    col_count = features.shape[2]
+    for ex_index in range(features.shape[0]):
+        example_features: Dict[Position, PositionState] = {}
+        for row_num in range(features.shape[1]):
+            for col_num in range(features.shape[2]):
+                position = Position(row_num, col_num)
+                enum_val = gst.convert_array_to_enum(features[ex_index, row_num, col_num].tolist(), PositionState)
+                example_features[position] = enum_val
+
+        direction = gst.convert_array_to_enum(labels[ex_index].tolist(), Direction)
+        items.append(AntMapExample(example_features, direction, row_count, col_count))
+    return items
