@@ -67,7 +67,7 @@ def print_layers(model: Model):
         print(f'{l.name}, {l.input_shape}, {l.output_shape}')
 
 
-def main():
+def main0():
     bot_to_emulate = 'memetix_1'
     game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')][200:202]
     # print(len(game_paths))
@@ -83,20 +83,12 @@ def main():
         mt.train_model(game_paths, factory)
 
 
-def main1():
+def main():
     bot_to_emulate = 'memetix_1'
     game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
     # print(len(game_paths))
-    game_sizes = [1, 5, 10, 20, 40, 50, 100, 150, 200, 400, 500, 600, 700]
-    factories = [
-        Conv2DModelFactory(bot_to_emulate),
-        Conv2DMaxPoolModelFactory(bot_to_emulate),
-        HybridModelFactory(bot_to_emulate)
-    ]
     mt = ModelTrainer()
-    for size in game_sizes:
-        for factory in factories:
-            mt.train_model(game_paths[:size], factory)
+    mt.train_model(game_paths[:20], Conv2DModelFactory(bot_to_emulate))
 
 
 if __name__ == "__main__":

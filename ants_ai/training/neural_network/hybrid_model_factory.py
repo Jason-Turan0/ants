@@ -34,30 +34,17 @@ class HybridModelFactory(ModelFactory):
 
     def construct_model(self, tuned_params: Dict[str, Union[int, float]], hps: HyperParameters = None) -> Model:
         hpf = HyperParameterFactory(self.default_parameters_values, tuned_params, hps)
-        max_pool = hpf.get_hyper_param(MAXPOOL_NAME,
-                                       lambda default: hps.Choice(MAXPOOL_NAME, values=[1, 2, 4, 8],
-                                                                  default=default))
-        filter_0 = hpf.get_hyper_param(FILTER0_NAME,
-                                       lambda default: hps.Choice(FILTER0_NAME, values=[4, 8, 16, 32],
-                                                                  default=default))
-        filter_1 = hpf.get_hyper_param(FILTER1_NAME,
-                                       lambda default: hps.Choice(FILTER1_NAME, values=[32, 48, 64],
-                                                                  default=default))
-        filter_2 = hpf.get_hyper_param(FILTER2_NAME,
-                                       lambda default: hps.Choice(FILTER2_NAME, values=[64, 96, 128], default=default))
-        dense = hpf.get_hyper_param(DENSE_NAME, lambda default: hps.Int(DENSE_NAME, 32, 128, step=8, default=default))
-        hp_learning_rate = hpf.get_hyper_param(LEARNING_RATE_NAME,
-                                               lambda default: hps.Choice(LEARNING_RATE_NAME,
-                                                                          values=[1e-2, 1e-3, 1e-4],
-                                                                          default=default))
+        max_pool = hpf.get_choice(MAXPOOL_NAME, [1, 2, 4, 8])
+        filter_0 = hpf.get_choice(FILTER0_NAME, [4, 8, 16, 32])
+        filter_1 = hpf.get_choice(FILTER1_NAME, [32, 48, 64])
+        filter_2 = hpf.get_choice(FILTER2_NAME, [64, 96, 128])
+        dense = hpf.get_int(DENSE_NAME, 32, 128, step=8)
+        hp_learning_rate = hpf.get_choice(LEARNING_RATE_NAME, [1e-2, 1e-3, 1e-4])
 
         input_ant_view = Input(shape=(12, 12, 7), name='input_ant_view')
-        avm = Conv2D(filter_0, 2, strides=1, activation=tf.nn.relu,
-                     name='Conv2D_av1_32')(input_ant_view)
-        avm = Conv2D(filter_1, 3, strides=1, activation=tf.nn.relu,
-                     name='Conv2D_av2_64')(avm)
-        avm = Conv2D(filter_2, 2, strides=1, activation=tf.nn.relu,
-                     name='Conv2D_av3_128')(avm)
+        avm = Conv2D(filter_0, 2, strides=1, activation=tf.nn.relu, name='Conv2D_av1_32')(input_ant_view)
+        avm = Conv2D(filter_1, 3, strides=1, activation=tf.nn.relu, name='Conv2D_av2_64')(avm)
+        avm = Conv2D(filter_2, 2, strides=1, activation=tf.nn.relu, name='Conv2D_av3_128')(avm)
         avm = Flatten(name='Flatten_av')(avm)
         avm = Dense(dense, activation=tf.nn.relu, name='Dense_av')(avm)
         avm = Model(inputs=input_ant_view, outputs=avm)

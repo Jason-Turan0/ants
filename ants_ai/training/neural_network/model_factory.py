@@ -7,6 +7,7 @@ from typing import List, Dict, Union, Tuple, Callable
 
 import jsonpickle
 import sklearn as sk
+from ants_ai.training.neural_network.ant_vision_sequence import AntVisionSequence
 from ants_ai.training.neural_network.encoders import TrainingDataset
 from ants_ai.training.game_state.game_state import GameState
 from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
@@ -21,6 +22,7 @@ from ants_ai.training.neural_network.model_hyper_parameter import ModelHyperPara
 from tensorflow.python.keras.models import Model
 
 import numpy as np
+from tensorflow.python.keras.utils.data_utils import Sequence
 
 
 class EncodingType(Enum):
@@ -160,6 +162,10 @@ class ModelFactory:
 
     @abstractmethod
     def encode_games(self, game_paths: List[str]) -> TrainingDataset:
+        pass
+
+    @abstractmethod
+    def create_sequence(self, game_paths: List[str], batch_size: int) -> AntVisionSequence:
         pass
 
     @abstractmethod

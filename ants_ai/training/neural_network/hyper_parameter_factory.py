@@ -1,4 +1,4 @@
-from typing import Dict, Union, Callable
+from typing import Dict, Union, Callable, List
 
 from kerastuner import HyperParameters, HyperParameter
 from ants_ai.training.neural_network.model_hyper_parameter import ModelHyperParameter
@@ -13,6 +13,19 @@ class HyperParameterFactory:
         self.default_parameters_values = default_parameters_values
         self.tuned_model_params = tuned_model_params
         self.hps = hps
+
+    def get_choice(self,
+                   name: str,
+                   values: List[Union[int, float]]) -> Union[int, float, HyperParameter]:
+        return self.get_hyper_param(name, lambda default: self.hps.Choice(name, values=values,
+                                                                          default=default))
+
+    def get_int(self,
+                name: str,
+                min: int,
+                max: int,
+                step: int = 1):
+        return self.get_hyper_param(name, lambda default: self.hps.Int(name, min, max, step=step))
 
     def get_hyper_param(self,
                         name: str,

@@ -40,24 +40,14 @@ class Conv2DMaxPoolModelFactory(ModelFactory):
 
     def construct_model(self, tuned_params: Dict[str, Union[int, float]], hps: HyperParameters = None) -> Model:
         hpf = HyperParameterFactory(self.default_parameters_values, tuned_params, hps)
-        filter_0 = hpf.get_hyper_param(FILTER0_NAME,
-                                       lambda default: hps.Choice(FILTER0_NAME, values=[4, 8, 16, 32], default=default))
-        filter_1 = hpf.get_hyper_param(FILTER1_NAME, lambda default: hps.Choice(FILTER1_NAME, values=[32, 48, 64],
-                                                                                default=default))
-        filter_2 = hpf.get_hyper_param(FILTER2_NAME,
-                                       lambda default: hps.Choice(FILTER2_NAME, values=[64, 96, 128], default=default))
-        max_pool_0 = hpf.get_hyper_param(MAX_POOL_SIZE0,
-                                         lambda default: hps.Choice(MAX_POOL_SIZE0, values=[1, 2],
-                                                                    default=default))
-        max_pool_1 = hpf.get_hyper_param(MAX_POOL_SIZE1, lambda default: hps.Choice(MAX_POOL_SIZE1, values=[1, 2],
-                                                                                    default=default))
-        max_pool_2 = hpf.get_hyper_param(MAX_POOL_SIZE2,
-                                         lambda default: hps.Choice(MAX_POOL_SIZE2, values=[1, 2, 4, 8],
-                                                                    default=default))
-        dense = hpf.get_hyper_param(DENSE_NAME, lambda default: hps.Int(DENSE_NAME, 32, 128, step=8, default=default))
-        lr = hpf.get_hyper_param(LEARNING_RATE_NAME,
-                                 lambda default: hps.Choice(LEARNING_RATE_NAME, values=[1e-2, 1e-3, 1e-4],
-                                                            default=default))
+        filter_0 = hpf.get_choice(FILTER0_NAME, [4, 8, 16, 32])
+        filter_1 = hpf.get_choice(FILTER1_NAME, [32, 48, 64])
+        filter_2 = hpf.get_choice(FILTER2_NAME, [64, 96, 128])
+        max_pool_0 = hpf.get_choice(MAX_POOL_SIZE0, [1, 2])
+        max_pool_1 = hpf.get_choice(MAX_POOL_SIZE1, [1, 2])
+        max_pool_2 = hpf.get_choice(MAX_POOL_SIZE2, [1, 2, 4, 8])
+        dense = hpf.get_int(DENSE_NAME, lambda default: hps.Int(DENSE_NAME, 32, 128, step=8, default=default))
+        lr = hpf.get_choice(LEARNING_RATE_NAME, [1e-2, 1e-3, 1e-4])
 
         model = Sequential([
             Input(name='Input', shape=(12, 12, 7)),

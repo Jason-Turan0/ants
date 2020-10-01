@@ -3,12 +3,15 @@ from typing import Dict, Union, List, Callable
 import tensorflow as tf
 from encoders import TrainingDataset
 from kerastuner import HyperParameters
+
+from ants_ai.training.neural_network.ant_vision_sequence import AntVisionSequence
 from ants_ai.training.neural_network.model_factory import ModelFactory, EncodingType
 from ants_ai.training.neural_network.model_hyper_parameter import ModelHyperParameter
 from ants_ai.training.neural_network.hyper_parameter_factory import HyperParameterFactory
 from tensorflow.python.keras import Input
 from tensorflow.python.keras.layers import Conv2D, Flatten, Dropout, Dense
 from tensorflow.python.keras.models import Model, Sequential
+from tensorflow.python.keras.utils.data_utils import Sequence
 
 FILTER0_NAME = 'filter_0'
 FILTER1_NAME = 'filter_1'
@@ -20,6 +23,7 @@ LEARNING_RATE_NAME = 'learning_rate'
 # Helpful link
 # https://www.quora.com/How-can-I-calculate-the-size-of-output-of-convolutional-layer
 class Conv2DModelFactory(ModelFactory):
+
     def __init__(self, bot_name: str):
         super().__init__('conv_2d', bot_name, {
             FILTER0_NAME: ModelHyperParameter(FILTER0_NAME, 32, True),
@@ -32,18 +36,16 @@ class Conv2DModelFactory(ModelFactory):
     def encode_games(self, game_paths: List[str]) -> TrainingDataset:
         return self.encode_game_states(game_paths, EncodingType.ANT_VISION_2D)
 
+    def create_sequence(self, game_paths: List[str], batch_size: int) -> Sequence:
+        return AntVisionSequence(game_paths, batch_size, self.bot_name, 7)
+
     def construct_model(self, tuned_params: Dict[str, Union[int, float]], hps: HyperParameters = None) -> Model:
         hpf = HyperParameterFactory(self.default_parameters_values, tuned_params, hps)
-        filter_0 = hpf.get_hyper_param(FILTER0_NAME,
-                                       lambda default: hps.Choice(FILTER0_NAME, values=[4, 8, 16, 32], default=default))
-        filter_1 = hpf.get_hyper_param(FILTER1_NAME, lambda default: hps.Choice(FILTER1_NAME, values=[32, 48, 64],
-                                                                                default=default))
-        filter_2 = hpf.get_hyper_param(FILTER2_NAME,
-                                       lambda default: hps.Choice(FILTER2_NAME, values=[64, 96, 128], default=default))
-        dense = hpf.get_hyper_param(DENSE_NAME, lambda default: hps.Int(DENSE_NAME, 32, 128, step=8, default=default))
-        lr = hpf.get_hyper_param(LEARNING_RATE_NAME,
-                                 lambda default: hps.Choice(LEARNING_RATE_NAME, values=[1e-2, 1e-3, 1e-4],
-                                                            default=default))
+        filter_0 = hpf.get_choice(FILTER0_NAME, [4, 8, 16, 32])
+        filter_1 = hpf.get_choice(FILTER1_NAME, [32, 48, 64])
+        filter_2 = hpf.get_choice(FILTER2_NAME, [64, 96, 128])
+        dense = hpf.get_int(DENSE_NAME, 32, 128, 8)
+        lr = hpf.get_choice(LEARNING_RATE_NAME, [1e-2, 1e-3, 1e-4])
 
         model = Sequential([
             Input(name='Input', shape=(12, 12, 7)),

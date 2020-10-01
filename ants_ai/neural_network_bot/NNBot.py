@@ -101,8 +101,8 @@ class NNBot(Bot):
             .to_list()
 
         pending_orders = seq(friendly_ants) \
-            .map(lambda va: Order(va.position, Direction.NONE,
-                                  self.game_map.adjacent_movement_position(va.position, Direction.NONE))) \
+            .map(lambda va: Order(va.position_start, Direction.NONE,
+                                  self.game_map.adjacent_movement_position(va.position_start, Direction.NONE))) \
             .to_list()
         predictions: List[Tuple[VisibleAnt, Direction]] = self.create_predictions(friendly_ants)
 
@@ -110,13 +110,13 @@ class NNBot(Bot):
         while seq(pending_orders).filter(lambda po: po.dir == Direction.NONE).len() > 0 and pass_through_count < 3:
             for index, order in enumerate(pending_orders):
                 # pylint: disable=cell-var-from-loop
-                matching_prediction = seq(predictions).find(lambda t: t[0].position == order.position)
-                new_order_position = self.game_map.adjacent_movement_position(order.position,
+                matching_prediction = seq(predictions).find(lambda t: t[0].position_start == order.position_start)
+                new_order_position = self.game_map.adjacent_movement_position(order.position_start,
                                                                               matching_prediction[1])
                 # pylint: disable=cell-var-from-loop
                 conflicting_order = seq(pending_orders).find(lambda po: po.next_position == new_order_position)
                 if conflicting_order is None:
-                    pending_orders[index] = Order(order.position, matching_prediction[1], new_order_position)
+                    pending_orders[index] = Order(order.position_start, matching_prediction[1], new_order_position)
             pass_through_count += 1
         return pending_orders
 

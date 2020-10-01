@@ -11,10 +11,9 @@ from functional import seq
 
 
 def get_play_result(dataPath) -> PlayResult:
-    f = open(dataPath, "r")
-    json_data = f.read()
-    f.close()
-    return jsonpickle.decode(json_data)
+    with open(dataPath, "r") as f:
+        json_data = f.read()
+        return jsonpickle.decode(json_data)
 
 
 def get_test_play_result() -> PlayResult:
