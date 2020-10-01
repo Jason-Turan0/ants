@@ -1,13 +1,15 @@
 from datetime import datetime
+from pprint import pprint
 from typing import List, Dict, Union
 
 import jsonpickle
 import kerastuner as kt
 import tensorflow as tf
-from ants_ai.training.neural_network.ant_vision_sequence import AntVisionSequence
+from ants_ai.training.neural_network.ant_vision_sequence import AntVisionSequence, DatasetType
 from ants_ai.training.neural_network.encoders import TrainingDataset
 from ants_ai.training.neural_network.run_stats import RunStats
 from ants_ai.training.neural_network.model_factory import ModelFactory
+from tensorflow.python.keras.callbacks import LambdaCallback
 
 
 class ModelTrainer:
@@ -45,32 +47,45 @@ class ModelTrainer:
         log_dir = f'logs/fit/{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
         run_stats_path = f'{log_dir}/run_stats.json'
         model_weights_path = f'{log_dir}/{mf.model_name}_weights'
-        model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-            filepath=model_weights_path,
-            save_weights_only=True,
-            monitor='val_categorical_accuracy',
-            mode='max',
-            save_best_only=True)
-        callbacks = [
-            tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1),
-            model_checkpoint_callback]
+        file_writer = tf.summary.create_file_writer(log_dir + "/validation")
+        file_writer.set_as_default()
         epochs = 10
         model = mf.construct_model(tuned_model_params)
-        print(f'Started training {mf.model_name} with {seq.get_training_length()} examples')
+        val_cat_acc: List[float] = []
+
+        def record_validation(epoch, logs):
+            seq.set_dataset_type(DatasetType.CROSS_VAL)
+            results = model.evaluate(seq)
+            seq.set_dataset_type(DatasetType.TRAINING)
+            logs['val_loss'] = results[0]
+            logs['val_categorical_accuracy'] = results[1]
+            tf.summary.scalar('val_loss', data=results[0], step=epoch)
+            tf.summary.scalar('val_categorical_accuracy', data=results[1], step=epoch)
+
+            current_best = max(val_cat_acc) if len(val_cat_acc) > 0 else 0
+            if current_best < results[1]:
+                print(f'Saving model weights on epoch {epoch}')
+                model.save_weights(model_weights_path)
+            val_cat_acc.append(results[1])
+
+        callbacks = [
+            LambdaCallback(on_epoch_end=record_validation),
+            tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1),
+        ]
+        print(f'Started training {mf.model_name} with {seq.get_training_range()[1]} examples')
         fit = model.fit(seq,
                         epochs=epochs,
-                        callbacks=callbacks,
-                        batch_size=self.batch_size)
-        # stats = RunStats(mf.model_name,
-        #                  model,
-        #                  tds,
-        #                  epochs,
-        #                  batch_size,
-        #                  tuned_model_params,
-        #                  mf.get_model_params(tuned_model_params),
-        #                  fit.history,
-        #                  discovery_path)
-        # with open(run_stats_path, 'w') as stream:
-        #     stream.write(jsonpickle.encode(stats))
-        # print(run_stats_path)
+                        callbacks=callbacks)
+        stats = RunStats(mf.model_name,
+                         model,
+                         seq,
+                         epochs,
+                         self.batch_size,
+                         tuned_model_params,
+                         mf.get_model_params(tuned_model_params),
+                         fit.history,
+                         discovery_path)
+        with open(run_stats_path, 'w') as stream:
+            stream.write(jsonpickle.encode(stats))
+        print(run_stats_path)
         print('Finished')

@@ -1,5 +1,6 @@
 import math
 import os
+from enum import IntEnum
 from typing import List, Tuple
 
 import jsonpickle
@@ -21,8 +22,15 @@ class GameIndex:
         self.position_end = self.position_start + self.length
 
 
+class DatasetType(IntEnum):
+    TRAINING = 1
+    CROSS_VAL = 2
+    TEST = 3
+
+
 class AntVisionSequence(Sequence):
-    def __init__(self, game_paths: List[str], batch_size: int, bot_to_emulate: str, channel_count=7):
+    def __init__(self, game_paths: List[str], batch_size: int, bot_to_emulate: str, channel_count=7,
+                 dataset_type: DatasetType = DatasetType.TRAINING):
         self.batch_size = batch_size
         self.channel_count = channel_count
         self.bot_to_emulate = bot_to_emulate
@@ -32,6 +40,7 @@ class AntVisionSequence(Sequence):
         self.game_indexes: List[GameIndex] = []
         self.loaded_indexes: List[Tuple[str, np.ndarray, np.ndarray]] = []
         self.max_load_count = 10
+        self.dataset_type = dataset_type
 
     def read_config(self, game_path: str, config_path: str) -> GameIndex:
         with open(config_path, "r") as f:
@@ -115,27 +124,34 @@ class AntVisionSequence(Sequence):
         return features[min(examples_to_select):max(examples_to_select)], \
                labels[min(examples_to_select): max(examples_to_select)]
 
-    # End indexes exclusive
+    # End indexes are exclusive
     def ranges_intersect(self, index_start0: int, index_end0: int, index_start1: int, index_end1: int) -> bool:
         return max(index_start0, index_start1) < min(index_end0 - 1, index_end1 - 1) + 1
 
-    def get_batch(self, range: Tuple[int, int], batch_index: int):
-        set_start, set_end = range
-        batch_start = (batch_index * self.batch_size) + set_start
-        batch_end = min(((batch_index + 1) * self.batch_size), set_end)
+    def get_batch(self, set_range: Tuple[int, int], batch_index: int):
+        set_start_index, set_end_index = set_range
+        number_of_batches = math.ceil((set_end_index - set_start_index) / self.batch_size)
+        if batch_index >= number_of_batches or batch_index < 0:
+            raise IndexError(f'Invalid index {batch_index}. Max index = {number_of_batches - 1}')
+        batch_start = (batch_index * self.batch_size) + set_start_index
+        batch_end = min(((batch_index + 1) * self.batch_size) + set_start_index, set_end_index)
         indexes_for_batch = [self.load_index(gi) for gi in self.game_indexes
                              if self.ranges_intersect(gi.position_start, gi.position_end, batch_start, batch_end)]
         examples_within_batch = [self.select_batch(t, batch_start, batch_end) for t in indexes_for_batch]
         return self.combine_ndarrays(examples_within_batch)
 
+    def calculate_batch_count(self, range: Tuple[int, int]):
+        start_index, end_index = range
+        return math.ceil((end_index - start_index) / self.batch_size)
+
     def get_training_batch_count(self):
-        return math.ceil(self.get_training_range()[1] / self.batch_size)
+        return self.calculate_batch_count(self.get_training_range())
 
     def get_cross_val_batch_count(self):
-        return math.ceil(self.get_cross_val_range()[1] / self.batch_size)
+        return self.calculate_batch_count(self.get_cross_val_range())
 
     def get_test_batch_count(self):
-        return math.ceil(self.get_cross_val_range()[1] / self.batch_size)
+        return self.calculate_batch_count(self.get_test_range())
 
     def get_training_batch(self, index: int):
         return self.get_batch(self.get_training_range(), index)
@@ -158,8 +174,40 @@ class AntVisionSequence(Sequence):
     def get_test_range(self) -> Tuple[int, int]:
         return math.floor(self.get_total_count() * .80), self.get_total_count()
 
+    def set_dataset_type(self, set_type: DatasetType):
+        self.dataset_type = set_type
+
+    def get_dataset_type(self):
+        return self.dataset_type
+
+    def range_len(self, range: Tuple[int, int]):
+        return range[1] - range[0]
+
+    def get_train_feature_shape(self) -> List[tuple]:
+        return [(self.range_len(self.get_training_range()), 12, 12, self.channel_count)]
+
+    def get_crossval_feature_shape(self) -> List[tuple]:
+        return [(self.range_len(self.get_cross_val_range()), 12, 12, self.channel_count)]
+
+    def get_test_feature_shape(self) -> List[tuple]:
+        return [(self.range_len(self.get_test_range()), 12, 12, self.channel_count)]
+
     def __getitem__(self, index):
-        return self.get_training_batch(index)
+        if self.dataset_type == DatasetType.TRAINING:
+            return self.get_training_batch(index)
+        elif self.dataset_type == DatasetType.CROSS_VAL:
+            return self.get_cross_val_batch(index)
+        elif self.dataset_type == DatasetType.TEST:
+            return self.get_test_batch(index)
+        else:
+            raise ValueError('Unknown enumeration used ' + self.dataset_type.name)
 
     def __len__(self):
-        return self.get_training_batch_count()
+        if self.dataset_type == DatasetType.TRAINING:
+            return self.get_training_batch_count()
+        elif self.dataset_type == DatasetType.CROSS_VAL:
+            return self.get_cross_val_batch_count()
+        elif self.dataset_type == DatasetType.TEST:
+            return self.get_test_batch_count()
+        else:
+            raise ValueError('Unknown enumeration used ' + self.dataset_type.name)

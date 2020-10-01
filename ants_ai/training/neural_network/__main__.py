@@ -88,7 +88,7 @@ def main():
     game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
     # print(len(game_paths))
     mt = ModelTrainer()
-    mt.train_model(game_paths[:20], Conv2DModelFactory(bot_to_emulate))
+    mt.train_model(game_paths[:2], Conv2DModelFactory(bot_to_emulate))
 
 
 if __name__ == "__main__":
