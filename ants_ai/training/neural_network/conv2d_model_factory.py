@@ -1,10 +1,10 @@
-from typing import Dict, Union, List, Callable
+from typing import Dict, Union, List
 
 import tensorflow as tf
 from encoders import TrainingDataset
 from kerastuner import HyperParameters
 
-from ants_ai.training.neural_network.ant_vision_sequence import AntVisionSequence
+from ants_ai.training.neural_network.sequences.ant_vision_sequence import AntVisionSequence
 from ants_ai.training.neural_network.model_factory import ModelFactory, EncodingType
 from ants_ai.training.neural_network.model_hyper_parameter import ModelHyperParameter
 from ants_ai.training.neural_network.hyper_parameter_factory import HyperParameterFactory

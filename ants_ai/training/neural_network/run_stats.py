@@ -1,16 +1,16 @@
 from datetime import datetime
-from typing import List, Dict, Union
+from typing import List, Dict
 
-from ants_ai.training.neural_network.ant_vision_sequence import AntVisionSequence, DatasetType
-from encoders import TrainingDataset
+from ants_ai.training.neural_network.sequences.file_system_sequence import FileSystemSequence
+from sequences.data_structs import DatasetType
 from functional import seq
-from numpy.core.multiarray import ndarray
+
 from tensorflow.python.keras import Model
 from ants_ai.training.neural_network.layer_stats import LayerStats
 
 
 class RunStats:
-    def __init__(self, model_name: str, model: Model, av_seq: AntVisionSequence, epochs: int, batch_size: int,
+    def __init__(self, model_name: str, model: Model, av_seq: FileSystemSequence, epochs: int, batch_size: int,
                  tuned_model_params: Dict[str, float], model_params: Dict[str, float], history: Dict,
                  discovery_path: str):
         self.model_name = model_name
@@ -31,9 +31,3 @@ class RunStats:
         self.history = history
         self.discovery_path = discovery_path
         self.timestamp = datetime.now().timestamp()
-
-    # def extract_size(self, item: Union[ndarray, List[ndarray]]) -> List[tuple]:
-    #     if isinstance(item, list):
-    #         return list(map(lambda a: a.shape, item))
-    #     else:
-    #         return [item.shape]

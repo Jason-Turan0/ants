@@ -1,10 +1,12 @@
 from typing import List, Dict, Union
 
 import tensorflow as tf
+from ants_ai.training.neural_network.sequences.file_system_sequence import FileSystemSequence
 from ants_ai.training.neural_network.encoders import TrainingDataset
 from ants_ai.training.neural_network.hyper_parameter_factory import HyperParameterFactory
 from ants_ai.training.neural_network.model_factory import ModelFactory, EncodingType
 from ants_ai.training.neural_network.model_hyper_parameter import ModelHyperParameter
+from ants_ai.training.neural_network.sequences.hybrid_sequence import HybridSequence
 from kerastuner import HyperParameters
 from tensorflow.keras.layers import Dense
 from tensorflow.python.keras import Model, Input
@@ -28,9 +30,13 @@ class HybridModelFactory(ModelFactory):
             DENSE_NAME: ModelHyperParameter(DENSE_NAME, 64, False),
             LEARNING_RATE_NAME: ModelHyperParameter(LEARNING_RATE_NAME, 0.001, False)
         })
+        self.channel_count = 7
 
     def encode_games(self, game_paths: List[str]) -> TrainingDataset:
         return self.encode_game_states(game_paths, EncodingType.MAP_2D)
+
+    def create_sequence(self, game_paths: List[str], batch_size: int) -> FileSystemSequence:
+        return HybridSequence(game_paths, batch_size, self.bot_name, self.channel_count)
 
     def construct_model(self, tuned_params: Dict[str, Union[int, float]], hps: HyperParameters = None) -> Model:
         hpf = HyperParameterFactory(self.default_parameters_values, tuned_params, hps)

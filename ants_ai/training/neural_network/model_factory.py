@@ -3,11 +3,11 @@ from abc import abstractmethod
 from enum import Enum
 from math import floor
 from random import shuffle
-from typing import List, Dict, Union, Tuple, Callable
+from typing import List, Dict, Union, Tuple
 
 import jsonpickle
 import sklearn as sk
-from ants_ai.training.neural_network.ant_vision_sequence import AntVisionSequence
+from ants_ai.training.neural_network.sequences.file_system_sequence import FileSystemSequence
 from ants_ai.training.neural_network.encoders import TrainingDataset
 from ants_ai.training.game_state.game_state import GameState
 from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
@@ -17,12 +17,11 @@ import ants_ai.training.neural_network.encoders as enc
 import multiprocessing as mp
 
 from functional import seq
-from kerastuner import HyperParameters, HyperParameter
+from kerastuner import HyperParameters
 from ants_ai.training.neural_network.model_hyper_parameter import ModelHyperParameter
 from tensorflow.python.keras.models import Model
 
 import numpy as np
-from tensorflow.python.keras.utils.data_utils import Sequence
 
 
 class EncodingType(Enum):
@@ -165,7 +164,7 @@ class ModelFactory:
         pass
 
     @abstractmethod
-    def create_sequence(self, game_paths: List[str], batch_size: int) -> AntVisionSequence:
+    def create_sequence(self, game_paths: List[str], batch_size: int) -> FileSystemSequence:
         pass
 
     @abstractmethod

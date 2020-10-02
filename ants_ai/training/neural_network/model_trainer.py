@@ -1,12 +1,11 @@
 from datetime import datetime
-from pprint import pprint
 from typing import List, Dict, Union
 
 import jsonpickle
 import kerastuner as kt
 import tensorflow as tf
-from ants_ai.training.neural_network.ant_vision_sequence import AntVisionSequence, DatasetType
-from ants_ai.training.neural_network.encoders import TrainingDataset
+from sequences.ant_vision_sequence import AntVisionSequence
+from sequences.data_structs import DatasetType
 from ants_ai.training.neural_network.run_stats import RunStats
 from ants_ai.training.neural_network.model_factory import ModelFactory
 from tensorflow.python.keras.callbacks import LambdaCallback

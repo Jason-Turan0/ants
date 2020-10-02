@@ -1,34 +1,21 @@
 import math
-import os
-from enum import IntEnum
-from typing import List, Tuple
+from abc import abstractmethod
+from typing import List, Tuple, Union
 
 import jsonpickle
-import sklearn as sk
-from ants_ai.training.game_state.game_state import GameState
-from ants_ai.training.game_state.generator import GameStateGenerator
-from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
-from functional import seq
-from tensorflow.python.keras.utils.data_utils import Sequence
 import numpy as np
-import ants_ai.training.neural_network.encoders as enc
+import sklearn as sk
+from functional import seq
+
+from tensorflow.python.keras.utils.data_utils import Sequence
+
+from ants_ai.training.neural_network.sequences.data_structs import GameIndex, LoadedIndex, DatasetType
+from ants_ai.training.game_state.game_state import GameState
+from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
+from ants_ai.training.game_state.generator import GameStateGenerator
 
 
-class GameIndex:
-    def __init__(self, game_path: str, position_start: int, length: int):
-        self.game_path = game_path
-        self.position_start = position_start
-        self.length = length
-        self.position_end = self.position_start + self.length
-
-
-class DatasetType(IntEnum):
-    TRAINING = 1
-    CROSS_VAL = 2
-    TEST = 3
-
-
-class AntVisionSequence(Sequence):
+class FileSystemSequence(Sequence):
     def __init__(self, game_paths: List[str], batch_size: int, bot_to_emulate: str, channel_count=7,
                  dataset_type: DatasetType = DatasetType.TRAINING):
         self.batch_size = batch_size
@@ -38,9 +25,17 @@ class AntVisionSequence(Sequence):
         self.gst = GameStateTranslator()
         self.gsg = GameStateGenerator()
         self.game_indexes: List[GameIndex] = []
-        self.loaded_indexes: List[Tuple[str, np.ndarray, np.ndarray]] = []
+        self.loaded_indexes: List[LoadedIndex] = []
         self.max_load_count = 10
         self.dataset_type = dataset_type
+
+    @abstractmethod
+    def build_indexes(self):
+        pass
+
+    @abstractmethod
+    def load_index(self, index: GameIndex) -> LoadedIndex:
+        pass
 
     def read_config(self, game_path: str, config_path: str) -> GameIndex:
         with open(config_path, "r") as f:
@@ -58,71 +53,54 @@ class AntVisionSequence(Sequence):
             pr = jsonpickle.decode(json_data)
             return self.gsg.generate(pr)
 
-    def get_feature_path(self, game_path: str) -> str:
-        return game_path.replace('.json',
-                                 f'_ANT_VISION_2D_FEATURES_{self.bot_to_emulate}_{self.channel_count}.npy')
-
-    def get_label_path(self, game_path: str) -> str:
-        return game_path.replace('.json',
-                                 f'_ANT_VISION_2D_LABELS_{self.bot_to_emulate}_{self.channel_count}.npy')
-
-    def get_index_path(self, game_path: str) -> str:
-        return game_path.replace('.json',
-                                 f'_ANT_VISION_2D_FEATURES_index_{self.bot_to_emulate}_{self.channel_count}.txt')
-
-    def build_indexes(self):
-        self.game_indexes = []
-        for game_path in self.game_paths:
-            if os.path.exists(self.get_index_path(game_path)):
-                self.game_indexes.append(self.read_config(game_path, self.get_index_path(game_path)))
-            else:
-                gs = self.load_game_state(game_path)
-                ant_vision = self.gst.convert_to_2d_ant_vision(self.bot_to_emulate, [gs])
-                features, labels = enc.encode_2d_examples(ant_vision, self.channel_count)
-                shuffled_features, shuffled_labels = sk.utils.shuffle(features, labels)
-                print(f'Saving {features.shape[0]} examples to {self.get_feature_path(game_path)}')
-                np.save(self.get_feature_path(game_path), shuffled_features)
-                np.save(self.get_label_path(game_path), shuffled_labels)
-                self.write_config(self.get_index_path(game_path), features.shape[0])
-                self.game_indexes.append(self.read_config(game_path, self.get_index_path(game_path)))
-
-    def load_index(self, index: GameIndex) -> Tuple[GameIndex, np.ndarray, np.ndarray]:
-        loaded_index = seq(self.loaded_indexes).find(lambda t: t[0] == index.game_path)
-        if loaded_index is not None:
-            return index, loaded_index[1], loaded_index[2]
-        else:
-            features, labels = np.load(self.get_feature_path(index.game_path)), np.load(
-                self.get_label_path(index.game_path))
-            self.loaded_indexes.append((index.game_path, features, labels))
-            if len(self.loaded_indexes) > self.max_load_count:
-                self.loaded_indexes.pop(0)
-            return index, features, labels
-
-    def combine_ndarrays(self, encoded_results: List[Tuple[np.ndarray, np.ndarray]]) -> Tuple[
-        np.ndarray, np.ndarray]:
+    def combine_encoded_examples(self, encoded_results: List[Tuple[Union[np.ndarray, List[np.ndarray]], np.ndarray]]) -> \
+            Tuple[Union[np.ndarray, List[np.ndarray]], np.ndarray]:
+        if len(encoded_results) == 0:
+            raise ValueError('Cannot be empty')
         if len(encoded_results) == 1:
             return encoded_results[0]
-        row_count = seq(encoded_results).map(lambda t: t[0].shape[0]).sum()
+        if isinstance(encoded_results[0][0], list):
+            row_count = seq(encoded_results).map(lambda t: t[1].shape[0]).sum()
+            labels = np.empty([row_count, *encoded_results[0][1].shape[1:]], dtype=int)
+            mapped_features = [np.empty([row_count, *feature_input.shape[1:]], dtype=int)
+                               for feature_input in encoded_results[0][0]]
+            current_row = 0
+            for r in encoded_results:
+                enc_features, enc_labels = r
+                for set_row_num in range(enc_labels.shape[0]):
+                    for input_index in range(len(enc_features)):
+                        mapped_features[input_index][current_row] = enc_features[input_index][set_row_num]
+                    labels[current_row] = enc_labels[set_row_num]
+                    current_row += 1
+            return mapped_features, labels
+        else:
+            row_count = seq(encoded_results).map(lambda t: t[0].shape[0]).sum()
+            features = np.empty([row_count, *encoded_results[0][0].shape[1:]], dtype=int)
+            labels = np.empty([row_count, *encoded_results[0][1].shape[1:]], dtype=int)
+            current_row = 0
+            for r in encoded_results:
+                enc_features, enc_labels = r
+                for set_row_num in range(enc_features.shape[0]):
+                    features[current_row] = enc_features[set_row_num]
+                    labels[current_row] = enc_labels[set_row_num]
+                    current_row += 1
+            return features, labels
 
-        features = np.empty([row_count, *encoded_results[0][0].shape[1:]], dtype=int)
-        labels = np.empty([row_count, *encoded_results[0][1].shape[1:]], dtype=int)
-        current_row = 0
-        for r in encoded_results:
-            for j in range(r[0].shape[0]):
-                features[current_row] = r[0][j]
-                labels[current_row] = r[1][j]
-                current_row += 1
-        return features, labels
-
-    def select_batch(self, loaded_index: Tuple[GameIndex, np.ndarray, np.ndarray], batch_start: int, batch_end: int) \
-            -> Tuple[np.ndarray, np.ndarray]:
-        game_index, features, labels = loaded_index
+    def select_batch(self, loaded_index: LoadedIndex, batch_start: int, batch_end: int) \
+            -> Tuple[Union[np.ndarray, List[np.ndarray]], np.ndarray]:
         examples_to_select = seq(
-            range(batch_start - game_index.position_start, (batch_end - game_index.position_start) + 1)) \
+            range(batch_start - loaded_index.game_index.position_start,
+                  (batch_end - loaded_index.game_index.position_start) + 1)) \
             .filter(lambda i: i >= 0) \
             .to_list()
-        return features[min(examples_to_select):max(examples_to_select)], \
-               labels[min(examples_to_select): max(examples_to_select)]
+
+        if isinstance(loaded_index.features, list):
+            mapped_features = seq(loaded_index.features).map(
+                lambda f: f[min(examples_to_select):max(examples_to_select)]).to_list()
+            return mapped_features, loaded_index.labels[min(examples_to_select): max(examples_to_select)]
+        else:
+            return loaded_index.features[min(examples_to_select):max(examples_to_select)], \
+                   loaded_index.labels[min(examples_to_select): max(examples_to_select)]
 
     # End indexes are exclusive
     def ranges_intersect(self, index_start0: int, index_end0: int, index_start1: int, index_end1: int) -> bool:
@@ -138,7 +116,7 @@ class AntVisionSequence(Sequence):
         indexes_for_batch = [self.load_index(gi) for gi in self.game_indexes
                              if self.ranges_intersect(gi.position_start, gi.position_end, batch_start, batch_end)]
         examples_within_batch = [self.select_batch(t, batch_start, batch_end) for t in indexes_for_batch]
-        return self.combine_ndarrays(examples_within_batch)
+        return self.combine_encoded_examples(examples_within_batch)
 
     def calculate_batch_count(self, range: Tuple[int, int]):
         start_index, end_index = range
