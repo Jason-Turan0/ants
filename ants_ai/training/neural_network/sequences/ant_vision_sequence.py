@@ -5,7 +5,7 @@ import sklearn as sk
 from ants_ai.training.neural_network.sequences.file_system_sequence import FileSystemSequence
 from functional import seq
 import numpy as np
-import ants_ai.training.neural_network.encoders as enc
+import ants_ai.training.neural_network.encoders.encoders as enc
 from ants_ai.training.neural_network.sequences.data_structs import GameIndex, LoadedIndex, DatasetType
 
 
@@ -53,3 +53,12 @@ class AntVisionSequence(FileSystemSequence):
             if len(self.loaded_indexes) > self.max_load_count:
                 self.loaded_indexes.pop(0)
             return self.loaded_indexes[-1]
+
+    def get_train_feature_shape(self) -> List[tuple]:
+        return [(self.range_len(self.get_training_range()), 12, 12, self.channel_count)]
+
+    def get_crossval_feature_shape(self) -> List[tuple]:
+        return [(self.range_len(self.get_cross_val_range()), 12, 12, self.channel_count)]
+
+    def get_test_feature_shape(self) -> List[tuple]:
+        return [(self.range_len(self.get_test_range()), 12, 12, self.channel_count)]

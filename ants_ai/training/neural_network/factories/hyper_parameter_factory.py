@@ -1,7 +1,7 @@
 from typing import Dict, Union, Callable, List
 
 from kerastuner import HyperParameters, HyperParameter
-from ants_ai.training.neural_network.model_hyper_parameter import ModelHyperParameter
+from ants_ai.training.neural_network.factories.model_hyper_parameter import ModelHyperParameter
 
 
 class HyperParameterFactory:
@@ -24,7 +24,7 @@ class HyperParameterFactory:
                 name: str,
                 min: int,
                 max: int,
-                step: int = 1):
+                step: int = 1) -> Union[int, HyperParameter]:
         return self.get_hyper_param(name, lambda default: self.hps.Int(name, min, max, step=step))
 
     def get_hyper_param(self,

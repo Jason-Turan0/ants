@@ -2,11 +2,11 @@ from datetime import datetime
 from typing import List, Dict
 
 from ants_ai.training.neural_network.sequences.file_system_sequence import FileSystemSequence
-from sequences.data_structs import DatasetType
+from ants_ai.training.neural_network.sequences.data_structs import DatasetType
 from functional import seq
 
 from tensorflow.python.keras import Model
-from ants_ai.training.neural_network.layer_stats import LayerStats
+from ants_ai.training.neural_network.trainer.layer_stats import LayerStats
 
 
 class RunStats:
@@ -19,8 +19,8 @@ class RunStats:
             .to_list()
         av_seq.set_dataset_type(DatasetType.TEST)
         test_eval = model.evaluate(av_seq)
-        self.test_loss = test_eval[0]
-        self.test_categorical_accuracy = test_eval[1]
+        self.test_loss = test_eval[0].item()
+        self.test_categorical_accuracy = test_eval[1].item()
         self.train_shape = av_seq.get_train_feature_shape()
         self.cross_val_shape = av_seq.get_crossval_feature_shape()
         self.test_shape = av_seq.get_test_feature_shape()
@@ -28,6 +28,6 @@ class RunStats:
         self.batch_size = batch_size
         self.tuned_model_params = tuned_model_params
         self.model_params = model_params
-        self.history = history
+        self.history = {k: seq(history[k]).map(lambda v: v.item()).to_list() for k in history.keys()}
         self.discovery_path = discovery_path
         self.timestamp = datetime.now().timestamp()

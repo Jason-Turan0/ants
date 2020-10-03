@@ -2,10 +2,10 @@ from typing import List, Dict, Union
 
 import tensorflow as tf
 from ants_ai.training.neural_network.sequences.file_system_sequence import FileSystemSequence
-from ants_ai.training.neural_network.encoders import TrainingDataset
-from ants_ai.training.neural_network.hyper_parameter_factory import HyperParameterFactory
-from ants_ai.training.neural_network.model_factory import ModelFactory, EncodingType
-from ants_ai.training.neural_network.model_hyper_parameter import ModelHyperParameter
+from ants_ai.training.neural_network.encoders.encoders import TrainingDataset
+from ants_ai.training.neural_network.factories.hyper_parameter_factory import HyperParameterFactory
+from ants_ai.training.neural_network.factories.model_factory import ModelFactory, EncodingType
+from ants_ai.training.neural_network.factories.model_hyper_parameter import ModelHyperParameter
 from ants_ai.training.neural_network.sequences.hybrid_sequence import HybridSequence
 from kerastuner import HyperParameters
 from tensorflow.keras.layers import Dense

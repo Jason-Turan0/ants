@@ -2,11 +2,11 @@ import glob
 import os
 import unittest
 
-from ants_ai.training.neural_network.model_factory import map_to_input, EncodingType
+from ants_ai.training.neural_network.factories.model_factory import map_to_input, EncodingType
 from ants_ai.training.game_state.generator import GameStateGenerator
-from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
-from ants_ai.training.neural_network.encoders import decode_ant_vision_2d_examples, decode_map_examples
-
+from ants_ai.training.neural_network.encoders.game_state_translator import GameStateTranslator
+from ants_ai.training.neural_network.encoders.encoders import decode_ant_vision_2d_examples, decode_map_examples
+ 
 
 class TestModelFactory(unittest.TestCase):
 

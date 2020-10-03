@@ -11,7 +11,7 @@ from tensorflow.python.keras.utils.data_utils import Sequence
 
 from ants_ai.training.neural_network.sequences.data_structs import GameIndex, LoadedIndex, DatasetType
 from ants_ai.training.game_state.game_state import GameState
-from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
+from ants_ai.training.neural_network.encoders.game_state_translator import GameStateTranslator
 from ants_ai.training.game_state.generator import GameStateGenerator
 
 
@@ -35,6 +35,18 @@ class FileSystemSequence(Sequence):
 
     @abstractmethod
     def load_index(self, index: GameIndex) -> LoadedIndex:
+        pass
+
+    @abstractmethod
+    def get_train_feature_shape(self) -> List[tuple]:
+        pass
+
+    @abstractmethod
+    def get_crossval_feature_shape(self) -> List[tuple]:
+        pass
+
+    @abstractmethod
+    def get_test_feature_shape(self) -> List[tuple]:
         pass
 
     def read_config(self, game_path: str, config_path: str) -> GameIndex:
@@ -158,17 +170,8 @@ class FileSystemSequence(Sequence):
     def get_dataset_type(self):
         return self.dataset_type
 
-    def range_len(self, range: Tuple[int, int]):
-        return range[1] - range[0]
-
-    def get_train_feature_shape(self) -> List[tuple]:
-        return [(self.range_len(self.get_training_range()), 12, 12, self.channel_count)]
-
-    def get_crossval_feature_shape(self) -> List[tuple]:
-        return [(self.range_len(self.get_cross_val_range()), 12, 12, self.channel_count)]
-
-    def get_test_feature_shape(self) -> List[tuple]:
-        return [(self.range_len(self.get_test_range()), 12, 12, self.channel_count)]
+    def range_len(self, index_range: Tuple[int, int]):
+        return index_range[1] - index_range[0]
 
     def __getitem__(self, index):
         if self.dataset_type == DatasetType.TRAINING:

@@ -5,9 +5,10 @@ from typing import List, Union, Dict, Tuple
 import numpy
 import pandas as pd
 from ants_ai.training.game_state.game_map import Direction, Position
-from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
-from ants_ai.training.neural_network.neural_network_example import AntVision1DExample, AntMapExample, AntVision2DExample
-from ants_ai.training.neural_network.position_state import PositionState
+from ants_ai.training.neural_network.encoders.game_state_translator import GameStateTranslator
+from ants_ai.training.neural_network.encoders.neural_network_example import AntVision1DExample, AntMapExample, \
+    AntVision2DExample
+from ants_ai.training.neural_network.encoders.position_state import PositionState
 from functional import seq
 from numpy import ndarray
 from sklearn.preprocessing import OneHotEncoder
@@ -127,7 +128,7 @@ def decode_ant_vision_2d_examples(encoded_examples: Tuple[ndarray, ndarray]) -> 
 
 def encode_map_examples(examples: List[AntMapExample], channel_count: int) -> Tuple[ndarray, ndarray]:
     gst = GameStateTranslator()
-    assert (len(examples) > 0)
+    if len(examples) == 0: return numpy.empty([0, 43, 39, 7], dtype=int), numpy.empty([0, 5], dtype=int)
     ex = examples[0]
     features = numpy.zeros([len(examples), ex.row_count, ex.column_count, channel_count], dtype=int)
     for e_index, e in enumerate(examples):

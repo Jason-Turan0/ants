@@ -1,7 +1,7 @@
 import os
-from typing import List
+from typing import List, Tuple
 
-import ants_ai.training.neural_network.encoders as enc
+import ants_ai.training.neural_network.encoders.encoders as enc
 from ants_ai.training.neural_network.sequences.data_structs import GameIndex, LoadedIndex, DatasetType
 from ants_ai.training.neural_network.sequences.file_system_sequence import FileSystemSequence
 import numpy as np
@@ -70,3 +70,17 @@ class HybridSequence(FileSystemSequence):
             if len(self.loaded_indexes) > self.max_load_count:
                 self.loaded_indexes.pop(0)
             return self.loaded_indexes[-1]
+
+    def get_feature_shape(self, index_range: Tuple[int, int]) -> List[tuple]:
+        range_len = self.range_len(index_range)
+        return [(range_len, 12, 12, self.channel_count),
+                (range_len, 49, 39, self.channel_count)]
+
+    def get_train_feature_shape(self) -> List[tuple]:
+        return self.get_feature_shape(self.get_training_range())
+
+    def get_crossval_feature_shape(self) -> List[tuple]:
+        return self.get_feature_shape(self.get_cross_val_range())
+
+    def get_test_feature_shape(self) -> List[tuple]:
+        return self.get_feature_shape(self.get_test_range())

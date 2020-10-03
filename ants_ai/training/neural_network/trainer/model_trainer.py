@@ -1,13 +1,15 @@
 from datetime import datetime
+from pprint import pprint
 from typing import List, Dict, Union
 
+import os
 import jsonpickle
 import kerastuner as kt
 import tensorflow as tf
-from sequences.ant_vision_sequence import AntVisionSequence
-from sequences.data_structs import DatasetType
-from ants_ai.training.neural_network.run_stats import RunStats
-from ants_ai.training.neural_network.model_factory import ModelFactory
+from ants_ai.training.neural_network.sequences.file_system_sequence import FileSystemSequence
+from ants_ai.training.neural_network.sequences.data_structs import DatasetType
+from ants_ai.training.neural_network.trainer.run_stats import RunStats
+from ants_ai.training.neural_network.factories.model_factory import ModelFactory
 from tensorflow.python.keras.callbacks import LambdaCallback
 
 
@@ -17,7 +19,7 @@ class ModelTrainer:
         self.batch_size = 50
 
     def discover_model(self, game_state_paths: List[str], mf: ModelFactory):
-        discovery_path = f'model_discovery/{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
+        discovery_path = f'{os.getcwd()}/model_discovery/{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
         max_epochs = 5
         callback = tf.keras.callbacks.EarlyStopping(monitor='val_categorical_accuracy', patience=3)
         tuner = kt.Hyperband(mf.construct_discover_model,
@@ -41,12 +43,13 @@ class ModelTrainer:
 
     def perform_training(self, mf: ModelFactory,
                          tuned_model_params: Dict[str, Union[int, float]],
-                         seq: AntVisionSequence,
+                         seq: FileSystemSequence,
                          discovery_path: str):
-        log_dir = f'logs/fit/{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
-        run_stats_path = f'{log_dir}/run_stats.json'
-        model_weights_path = f'{log_dir}/{mf.model_name}_weights'
-        file_writer = tf.summary.create_file_writer(log_dir + "/validation")
+        log_dir = rf'{os.getcwd()}\logs\fit\{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
+        os.makedirs(log_dir)
+        run_stats_path = rf'{log_dir}\run_stats.json'
+        model_weights_path = rf'{log_dir}\{mf.model_name}_weights'
+        file_writer = tf.summary.create_file_writer(log_dir + r"\validation")
         file_writer.set_as_default()
         epochs = 10
         model = mf.construct_model(tuned_model_params)
@@ -74,7 +77,9 @@ class ModelTrainer:
         print(f'Started training {mf.model_name} with {seq.get_training_range()[1]} examples')
         fit = model.fit(seq,
                         epochs=epochs,
-                        callbacks=callbacks)
+                        callbacks=callbacks
+                        )
+        pprint(fit.history)
         stats = RunStats(mf.model_name,
                          model,
                          seq,

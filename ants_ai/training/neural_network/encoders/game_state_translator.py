@@ -5,8 +5,9 @@ from ants_ai.training.game_state.ant_turn import AntTurn
 from ants_ai.training.game_state.game_map import Position, TerrainType
 from ants_ai.training.game_state.game_state import GameState
 from ants_ai.training.game_state.game_turn import GameTurn
-from ants_ai.training.neural_network.neural_network_example import AntVision1DExample, AntMapExample, AntVision2DExample
-from ants_ai.training.neural_network.position_state import PositionState
+from ants_ai.training.neural_network.encoders.neural_network_example import AntVision1DExample, AntMapExample, \
+    AntVision2DExample
+from ants_ai.training.neural_network.encoders.position_state import PositionState
 from functional import seq
 
 T = TypeVar('T', bound=Enum)

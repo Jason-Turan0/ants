@@ -8,17 +8,18 @@ from typing import List, Dict, Union, Tuple
 import jsonpickle
 import sklearn as sk
 from ants_ai.training.neural_network.sequences.file_system_sequence import FileSystemSequence
-from ants_ai.training.neural_network.encoders import TrainingDataset
+from ants_ai.training.neural_network.encoders.encoders import TrainingDataset
 from ants_ai.training.game_state.game_state import GameState
-from ants_ai.training.neural_network.game_state_translator import GameStateTranslator
+from ants_ai.training.neural_network.encoders.game_state_translator import GameStateTranslator
 from ants_ai.training.game_state.generator import GameStateGenerator
-import ants_ai.training.neural_network.encoders as enc
+import ants_ai.training.neural_network.encoders.encoders as enc
+from ants_ai.training.neural_network.factories.model_hyper_parameter import ModelHyperParameter
 
 import multiprocessing as mp
 
 from functional import seq
 from kerastuner import HyperParameters
-from ants_ai.training.neural_network.model_hyper_parameter import ModelHyperParameter
+
 from tensorflow.python.keras.models import Model
 
 import numpy as np
