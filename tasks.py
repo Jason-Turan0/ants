@@ -29,6 +29,10 @@ def run_training(context):
     context.run('cd ants_ai & python training/neural_network/__main__.py')
 
 @task
+def run_training_cpu(context):
+    context.run('CALL SET CUDA_VISIBLE_DEVICES=-1 & cd ants_ai & python training/neural_network/__main__.py')
+
+@task
 def start_tensor_board(context):
     context.run('tensorboard --logdir ants_ai/logs/fit')
 

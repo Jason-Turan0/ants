@@ -161,10 +161,6 @@ class ModelFactory:
         self.default_parameters_values = default_parameters_values
 
     @abstractmethod
-    def encode_games(self, game_paths: List[str]) -> TrainingDataset:
-        pass
-
-    @abstractmethod
     def create_sequence(self, game_paths: List[str], batch_size: int) -> FileSystemSequence:
         pass
 

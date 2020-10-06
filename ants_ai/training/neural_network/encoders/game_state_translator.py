@@ -77,10 +77,25 @@ class GameStateTranslator:
         Position, PositionState]:
         turn_state = game_state.game_turns[turn_number]
         map_positions = seq(game_state.game_map.terrain.keys()) \
-            .order_by(lambda p: p) \
             .map(lambda p: (p, self.convert_pos_to_state(p, bot_name, turn_state, game_state))) \
             .to_dict()
         return map_positions
+
+    def convert_to_global_antmap_example(self, ant_turn: AntTurn, game_state: GameState) -> AntMapExample:
+        gm = game_state.game_map
+        atp = ant_turn.position
+        ant_vision = gm.get_positions_within_distance(ant_turn.position,
+                                                      game_state.view_radius_squared,
+                                                      use_absolute=False,
+                                                      crop_to_square=True)
+
+        turn_state = game_state.game_turns[ant_turn.turn_number]
+        position_states = {p: self.convert_pos_to_state(gm.wrap_position(atp.row + p.row, atp.column + p.column),
+                                                        ant_turn.bot.bot_name, turn_state, game_state) \
+            if p not in ant_vision else PositionState.WATER if game_state.game_map.terrain.get(
+            p) == TerrainType.WATER else PositionState.LAND
+                           for p in game_state.game_map.terrain.keys()}
+        return AntMapExample(position_states, ant_turn.next_direction, gm.row_count, gm.column_count)
 
     def convert_to_1d_ant_vision(self, bot_name: str, game_states: List[GameState]) -> List[AntVision1DExample]:
         examples = [self.convert_to_1d_example(at, gs) \
@@ -94,13 +109,20 @@ class GameStateTranslator:
                     if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
         return examples
 
+    def convert_to_global_antmap(self, bot_name: str, game_states: List[GameState]) -> List[AntMapExample]:
+        examples = [self.convert_to_global_antmap_example(at, gs) \
+                    for gs in game_states for gt in gs.game_turns for at in gt.ants.values() \
+                    if (gt.turn_number <= gs.ranking_turn + 1) and at.bot.bot_name == bot_name]
+        return examples
+
     def convert_to_antmap(self, bot_name: str, game_states: List[GameState]) -> List[AntMapExample]:
         map_states: Dict[Tuple[str, int], Dict[
             Position, PositionState]] = seq(game_states) \
             .flat_map(lambda gs: seq(gs.game_turns).map(lambda gt: (gs, gt))) \
             .filter(lambda t: t[1].turn_number <= t[0].ranking_turn + 1) \
             .map(
-            lambda t: ((t[0].game_id, t[1].turn_number), self.convert_to_map_example(bot_name, t[1].turn_number, t[0]))) \
+            lambda t: (
+                (t[0].game_id, t[1].turn_number), self.convert_to_map_example(bot_name, t[1].turn_number, t[0]))) \
             .to_dict()
         # Need to check all maps in set are identical.
         game_map = game_states[0].game_map

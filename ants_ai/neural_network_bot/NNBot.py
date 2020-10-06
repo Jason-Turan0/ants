@@ -6,7 +6,7 @@ from tensorflow import keras
 from ants_ai.training.game_state.game_map import create_map, GameMap, Position, TerrainType, Direction
 from ants_ai.engine.bot import Bot
 from ants_ai.engine.bot_name import BotName
-from encoders import encode_2d_features
+from ants_ai.training.neural_network.encoders.encoders import encode_2d_features
 from game_state_translator import GameStateTranslator
 from position_state import PositionState
 

@@ -26,10 +26,10 @@ class AntVisionSequence(FileSystemSequence):
         return game_path.replace('.json',
                                  f'_ANT_VISION_2D_FEATURES_index_{self.bot_to_emulate}_{self.channel_count}.txt')
 
-    def build_indexes(self):
+    def build_indexes(self, rebuild: bool):
         self.game_indexes = []
         for game_path in self.game_paths:
-            if os.path.exists(self.get_index_path(game_path)):
+            if os.path.exists(self.get_index_path(game_path)) and not rebuild:
                 self.game_indexes.append(self.read_config(game_path, self.get_index_path(game_path)))
             else:
                 gs = self.load_game_state(game_path)

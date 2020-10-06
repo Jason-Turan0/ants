@@ -32,9 +32,6 @@ class HybridModelFactory(ModelFactory):
         })
         self.channel_count = 7
 
-    def encode_games(self, game_paths: List[str]) -> TrainingDataset:
-        return self.encode_game_states(game_paths, EncodingType.MAP_2D)
-
     def create_sequence(self, game_paths: List[str], batch_size: int) -> FileSystemSequence:
         return HybridSequence(game_paths, batch_size, self.bot_name, self.channel_count)
 

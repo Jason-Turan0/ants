@@ -30,7 +30,7 @@ class FileSystemSequence(Sequence):
         self.dataset_type = dataset_type
 
     @abstractmethod
-    def build_indexes(self):
+    def build_indexes(self, rebuild: bool):
         pass
 
     @abstractmethod

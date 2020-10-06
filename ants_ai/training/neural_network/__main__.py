@@ -1,32 +1,28 @@
 import glob
+import multiprocessing as mp
 import os
-from pprint import pprint
 from typing import List
 
 import jsonpickle
 import matplotlib.pyplot as plt
-
-from ants_ai.training.neural_network.sequences.hybrid_sequence import HybridSequence
+from ants_ai.training.neural_network.sequences.ant_vision_sequence import AntVisionSequence
 from ants_ai.training.neural_network.factories.hybrid_model_factory import HybridModelFactory
-from ants_ai.training.neural_network.factories.conv2d_maxpool_model_factory import Conv2DMaxPoolModelFactory
+from ants_ai.training.neural_network.sequences.hybrid_sequence import HybridSequence
+# from ants_ai.training.neural_network.factories.conv2d_maxpool_model_factory import Conv2DMaxPoolModelFactory
 from ants_ai.training.neural_network.factories.conv2d_model_factory import Conv2DModelFactory
+from ants_ai.training.neural_network.factories.combined_model_factory import CombinedModelFactory
+from ants_ai.training.neural_network.factories.map_view_model_factory import MapViewModelFactory
+
 from ants_ai.training.neural_network.trainer.model_trainer import ModelTrainer
 from ants_ai.training.neural_network.trainer.run_stats import RunStats
-
-from functional import seq, pseq
-
-from tensorflow.python.keras.models import Model
-import multiprocessing as mp
+from functional import seq
 from prettytable import PrettyTable
+from tensorflow.python.keras.models import Model
 
-# disables GPUs
-# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-import tensorflow as tf
 
 # GeForce GTX 750 Ti
 # python 3.7.8
 # tf version 2.1.1
-print(tf.version.VERSION)
 
 
 def read_file_contents(path):
@@ -96,45 +92,36 @@ def print_layers(model: Model):
 def main():
     bot_to_emulate = 'memetix_1'
     game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
-    # print(len(game_paths))
-    game_lengths = [1]
+    print(len(game_paths))
+    game_lengths = [5, 10, 20, 50, 75, 100]
     # seq = HybridSequence(game_paths, 50, bot_to_emulate)
     # seq.build_indexes()
     mt = ModelTrainer()
-    factory = HybridModelFactory(bot_to_emulate)
+    factory = MapViewModelFactory(bot_to_emulate)
+    mt.train_model(game_paths[:10], factory)
     for gl in game_lengths:
         mt.train_model(game_paths[0:gl], factory)
-    # mt = ModelTrainer()
-    # mt.train_model(game_paths, HybridModelFactory(bot_to_emulate))
-    # factories = [
-    #     Conv2DModelFactory(bot_to_emulate),
-    #     Conv2DMaxPoolModelFactory(bot_to_emulate),
-    #     HybridModelFactory(bot_to_emulate)
-    # ]
-    # mt = ModelTrainer()
-    # for factory in factories:
-    #     mt.train_model(game_paths, factory)
 
 
-def build_index(game_path: str):
-    s = HybridSequence([game_path], 50, 'memetix_1')
-    s.build_indexes()
-    return True
-
-
-def rebuild_indexes():
+def main1():
     bot_to_emulate = 'memetix_1'
     game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
-    pool = mp.Pool(mp.cpu_count() - 1)
-    pool.map(build_index, game_paths)
-    pool.close()
+    games = game_paths[:1]
+    mv_mf = MapViewModelFactory(bot_to_emulate)
+    conv_mf = Conv2DModelFactory(bot_to_emulate)
+    mt = ModelTrainer()
+    trained_mv = mt.train_model(games, mv_mf)
+    trained_cmf = mt.train_model(games, conv_mf)
+    
+    com_mf = CombinedModelFactory(bot_to_emulate, trained_cmf.weight_path, trained_mv.weight_path)
+    mt.train_model(games, com_mf)
 
 
 def compare_model_learning_curve():
     game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
-    show_learning_curve('conv_2d')
-    show_learning_curve('hybrid_2d')
+    show_learning_curve('mapview_2d')
+    # show_learning_curve('hybrid_2d')
 
 
 if __name__ == "__main__":
-    main()
+    main1()

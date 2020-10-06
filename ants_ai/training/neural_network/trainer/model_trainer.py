@@ -27,24 +27,16 @@ class ModelTrainer:
                              max_epochs=max_epochs,
                              directory=discovery_path,
                              project_name='ants_ai')
-        # tds: TrainingDataset = mf.encode_games(game_state_paths)
-        # print(
-        #    f'Started discovery of {mf.model_name} with {tds.get_training_length()} examples')
-        # tuner.search(tds.train.features, tds.train.labels, epochs=max_epochs, batch_size=50,
-        #             validation_data=(tds.cross_val.features, tds.cross_val.labels), callbacks=[callback])
-        # self.perform_training(mf, {}, tds, discovery_path)
-        # for best_hps in tuner.get_best_hyperparameters(3):
-        #    self.perform_training(mf, best_hps.values, tds, discovery_path)
 
-    def train_model(self, game_state_paths: List[str], mf: ModelFactory):
+    def train_model(self, game_state_paths: List[str], mf: ModelFactory) -> RunStats:
         seq = mf.create_sequence(game_state_paths, self.batch_size)
-        seq.build_indexes()
-        self.perform_training(mf, {}, seq, '')
+        seq.build_indexes(True)
+        return self.perform_training(mf, {}, seq, '')
 
     def perform_training(self, mf: ModelFactory,
                          tuned_model_params: Dict[str, Union[int, float]],
                          seq: FileSystemSequence,
-                         discovery_path: str):
+                         discovery_path: str) -> RunStats:
         log_dir = rf'{os.getcwd()}\logs\fit\{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
         os.makedirs(log_dir)
         run_stats_path = rf'{log_dir}\run_stats.json'
@@ -79,7 +71,6 @@ class ModelTrainer:
                         epochs=epochs,
                         callbacks=callbacks
                         )
-        pprint(fit.history)
         stats = RunStats(mf.model_name,
                          model,
                          seq,
@@ -88,8 +79,10 @@ class ModelTrainer:
                          tuned_model_params,
                          mf.get_model_params(tuned_model_params),
                          fit.history,
-                         discovery_path)
+                         discovery_path,
+                         model_weights_path)
         with open(run_stats_path, 'w') as stream:
             stream.write(jsonpickle.encode(stats))
         print(run_stats_path)
         print('Finished')
+        return stats
