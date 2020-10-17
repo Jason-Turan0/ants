@@ -3,15 +3,15 @@ from pprint import pprint
 from typing import List, Union, Dict, Tuple
 
 import numpy
-import pandas as pd
 from ants_ai.training.game_state.game_map import Direction, Position
 from ants_ai.training.neural_network.encoders.game_state_translator import GameStateTranslator
-from ants_ai.training.neural_network.encoders.neural_network_example import AntVision1DExample, AntMapExample, \
-    AntVision2DExample
+from ants_ai.training.neural_network.encoders.neural_network_example import AntMapExample, AntVision2DExample
 from ants_ai.training.neural_network.encoders.position_state import PositionState
 from functional import seq
 from numpy import ndarray
-from sklearn.preprocessing import OneHotEncoder
+
+
+# from sklearn.preprocessing import OneHotEncoder
 
 
 class LabeledDataset:
@@ -30,31 +30,6 @@ class TrainingDataset:
         return self.train.features.shape[0] \
             if isinstance(self.train.features, ndarray) \
             else self.train.features[0].shape[0]
-
-
-def encode_flat_examples(examples: List[AntVision1DExample]) -> LabeledDataset:
-    stringData = [[f.name for f in ex.features] for ex in examples]
-    categories = [[m for m in PositionState.__members__] for i in range(len(examples[0].features))]
-    columns = [f'pos_{num}' for num, ex in enumerate(examples[0].features)]
-    in_df = pd.DataFrame(data=stringData, columns=columns)
-    one_hot_encoder = OneHotEncoder(sparse=False, categories=categories)
-    one_hot_encoder.fit(in_df)
-    encoded_features = one_hot_encoder.transform(in_df)
-    labels = [[e.label.name] for e in examples]
-    label_df = pd.DataFrame(data=labels, columns=['direction'])
-    label_categories = [d for d in Direction.__members__]
-    one_hot_label_encoder = OneHotEncoder(sparse=False, categories=[label_categories])
-    one_hot_label_encoder.fit(label_df)
-    encoded_labels = one_hot_label_encoder.transform(label_df)
-    return LabeledDataset(encoded_features, encoded_labels)
-
-
-def encode_1d_examples(examples: List[AntVision1DExample]) -> LabeledDataset:
-    t = GameStateTranslator()
-    features = numpy.array(
-        [[t.convert_enum_to_array(f, PositionState) for f in ex.features] for ex in examples])
-    labels = numpy.array([t.convert_enum_to_array(ex.label, Direction) for ex in examples])
-    return LabeledDataset(features, labels)
 
 
 def down_sample(gst: GameStateTranslator, ps: PositionState, channel_count: int):

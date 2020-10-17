@@ -18,7 +18,7 @@ def get_play_result(dataPath) -> PlayResult:
 
 def get_test_play_result() -> PlayResult:
     return get_play_result(
-        f'{os.getcwd()}\\training\\tests\\test_data\\tournament 2020-08-07-23-59-20\\0acf0270-1f31-4015-aa2c-0f3a52cc80fb.json')
+        f'{os.getcwd()}\\training\\tests\\test_data\\0acf0270-1f31-4015-aa2c-0f3a52cc80fb.json')
 
 
 def create_test_game_state() -> GameState:

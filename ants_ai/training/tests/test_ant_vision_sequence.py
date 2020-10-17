@@ -12,7 +12,7 @@ from ants_ai.training.neural_network.sequences.hybrid_sequence import HybridSequ
 class TestAntVisionSequence(unittest.TestCase):
     def setUp(self) -> None:
         self.data_file_names = ['0cbdcc89-692b-46e6-a567-5014942151ed', '0acf0270-1f31-4015-aa2c-0f3a52cc80fb']
-        self.data_folder = f'{os.getcwd()}\\training\\tests\\test_data\\tournament 2020-08-07-23-59-20'
+        self.data_folder = f'{os.getcwd()}\\training\\tests\\test_data'
         self.data_paths = [f'{self.data_folder}\\{data_file_name}.json' for data_file_name in self.data_file_names]
         self.expected_example_counts = [1072, 1311]
         self.batch_size = 50
@@ -26,12 +26,12 @@ class TestAntVisionSequence(unittest.TestCase):
 
     def test_batch_length(self):
         s = AntVisionSequence(self.data_paths, self.batch_size, self.bot_to_emulate)
-        s.build_indexes()
+        s.build_indexes(True)
         self.assertEqual(ceil((sum(self.expected_example_counts) * .6) / self.batch_size), len(s))
 
     def test_hybrid_sequence(self):
         s = HybridSequence(self.data_paths, self.batch_size, self.bot_to_emulate)
-        s.build_indexes()
+        s.build_indexes(True)
 
         for gi in s.game_indexes:
             print(f'{gi.position_start} {gi.position_end} {gi.length}')
@@ -62,7 +62,7 @@ class TestAntVisionSequence(unittest.TestCase):
 
     def test_set_sizes(self):
         s = AntVisionSequence(self.data_paths, self.batch_size, self.bot_to_emulate)
-        s.build_indexes()
+        s.build_indexes(True)
 
         for gi in s.game_indexes:
             print(f'{gi.position_start} {gi.position_end} {gi.length}')
@@ -93,7 +93,7 @@ class TestAntVisionSequence(unittest.TestCase):
 
     def test_create_index(self):
         s = AntVisionSequence(self.data_paths, self.batch_size, self.bot_to_emulate)
-        s.build_indexes()
+        s.build_indexes(True)
         gi_0 = seq(s.game_indexes).find(lambda gi: gi.game_path == self.data_paths[0])
         gi_1 = seq(s.game_indexes).find(lambda gi: gi.game_path == self.data_paths[1])
 
@@ -102,13 +102,13 @@ class TestAntVisionSequence(unittest.TestCase):
 
     def test_get_batch(self):
         s = AntVisionSequence(self.data_paths, self.batch_size, self.bot_to_emulate)
-        s.build_indexes()
+        s.build_indexes(True)
         blah = s[0]
         self.assertEqual((50, 12, 12, 7), blah[0].shape)
 
     def test_get_last_batch(self):
         s = AntVisionSequence(self.data_paths, self.batch_size, self.bot_to_emulate)
-        s.build_indexes()
+        s.build_indexes(True)
         last_batch = s[len(s) - 1]
         self.assertEqual((29, 12, 12, 7), last_batch[0].shape)
 
@@ -122,6 +122,6 @@ class TestAntVisionSequence(unittest.TestCase):
 
     def test_get_batch_across_index(self):
         s = AntVisionSequence(self.data_paths, self.batch_size, self.bot_to_emulate)
-        s.build_indexes()
+        s.build_indexes(True)
         last_batch_index = s[floor(s.game_indexes[0].length % self.batch_size)]
         self.assertEqual((50, 12, 12, 7), last_batch_index[0].shape)

@@ -60,10 +60,10 @@ def build_index(task: Tuple[str, str]):
 
 
 def rebuild_indexes():
-    sequence_types = ['MapViewSequence', 'AntVisionSequence', 'CombinedSequence']
+    sequence_types = ['AntVisionSequence', 'MapViewSequence', 'CombinedSequence']
     game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
     pool = mp.Pool(mp.cpu_count() - 1)
-    pool.map(build_index, [(path, seq_type) for seq_type in sequence_types for path in game_paths[:100]])
+    pool.map(build_index, [(path, seq_type) for seq_type in sequence_types for path in game_paths[100:200]])
     pool.close()
 
 

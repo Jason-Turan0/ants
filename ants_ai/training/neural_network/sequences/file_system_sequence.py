@@ -121,6 +121,9 @@ class FileSystemSequence(Sequence):
     def get_batch(self, set_range: Tuple[int, int], batch_index: int):
         set_start_index, set_end_index = set_range
         number_of_batches = math.ceil((set_end_index - set_start_index) / self.batch_size)
+        if number_of_batches == 0:
+            raise IndexError(
+                f'Invalid index {batch_index}. Sequence was likely not initialized. Call build_indexes to initialize sequence.')
         if batch_index >= number_of_batches or batch_index < 0:
             raise IndexError(f'Invalid index {batch_index}. Max index = {number_of_batches - 1}')
         batch_start = (batch_index * self.batch_size) + set_start_index

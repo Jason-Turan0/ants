@@ -53,7 +53,7 @@ class MapViewModelFactory(ModelFactory):
         lr = hpf.get_choice(LEARNING_RATE_NAME, [1e-2, 1e-3, 1e-4])
 
         model = Sequential([
-            Input(name='MapView_Input', shape=(49, 39, 7)),
+            Input(name='MapView_Input', shape=(43, 39, 7)),
             MaxPooling2D(max_pool0, name='MapView_MaxPool_0'),
             Conv2D(filter_0, 2, strides=1, activation=tf.nn.relu, name='MapView_Conv2D_1'),
             MaxPooling2D(max_pool1, name='MapView_MaxPool_1'),

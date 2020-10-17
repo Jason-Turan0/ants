@@ -13,6 +13,7 @@ from kerastuner import HyperParameters
 from tensorflow.keras.layers import Dense
 from tensorflow.python.keras import Model, Input
 from tensorflow.python.keras.layers import Flatten, concatenate, Conv2D, MaxPooling2D
+from tensorflow_core.python.keras.layers import Dropout, Concatenate
 
 DENSE_NAME = 'dense'
 LEARNING_RATE_NAME = 'learning_rate'
@@ -46,10 +47,15 @@ class CombinedModelFactory(ModelFactory):
         map_view_model.load_weights(self.map_view_weight_path)
         map_view_model.trainable = False
 
-        combined_model = Flatten(name='Combined_Flatten')(conv_2d_model.input)
-        combined_model = Dense(dense, activation=tf.nn.relu, name='Combined_Dense0')(combined_model)
-        combined_model = concatenate([combined_model, conv_2d_model.output, map_view_model.output])
-        combined_model = Dense(dense, activation=tf.nn.relu, name='Combined_Dense1')(combined_model)
+        combined_model = Conv2D(32, 2, strides=1, activation=tf.nn.relu, name='Combined_Conv2D_0')(conv_2d_model.input)
+        combined_model = Conv2D(64, 3, strides=1, activation=tf.nn.relu, name='Combined_Conv2D_1')(combined_model)
+        combined_model = Conv2D(128, 2, strides=1, activation=tf.nn.relu, name='Combined_Conv2D_2')(combined_model)
+        combined_model = Flatten(name='Combined_Flatten')(combined_model)
+        combined_model = Dropout(0.1, name='Combined_Dropout')(combined_model)
+        combined_model = Dense(dense, name='Combined_Dense0')(combined_model)
+        combined_model = Concatenate(name='Combined_Concat')(
+            [conv_2d_model.output, map_view_model.output, combined_model])
+        combined_model = Dense(dense, name='Combined_Dense1')(combined_model)
         output = Dense(5, activation=tf.nn.relu)(combined_model)
         combined_model = Model(inputs=[conv_2d_model.input, map_view_model.input], outputs=output)
 

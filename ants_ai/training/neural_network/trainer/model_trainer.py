@@ -1,6 +1,6 @@
 from datetime import datetime
 from pprint import pprint
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Tuple
 
 import os
 import jsonpickle
@@ -11,6 +11,7 @@ from ants_ai.training.neural_network.sequences.data_structs import DatasetType
 from ants_ai.training.neural_network.trainer.run_stats import RunStats
 from ants_ai.training.neural_network.factories.model_factory import ModelFactory
 from tensorflow.python.keras.callbacks import LambdaCallback
+from tensorflow_core.python.keras import Model
 
 
 class ModelTrainer:
@@ -28,15 +29,15 @@ class ModelTrainer:
                              directory=discovery_path,
                              project_name='ants_ai')
 
-    def train_model(self, game_state_paths: List[str], mf: ModelFactory) -> RunStats:
+    def train_model(self, game_state_paths: List[str], mf: ModelFactory) -> Tuple[Model, RunStats]:
         seq = mf.create_sequence(game_state_paths, self.batch_size)
-        seq.build_indexes(True)
+        seq.build_indexes(False)
         return self.perform_training(mf, {}, seq, '')
 
     def perform_training(self, mf: ModelFactory,
                          tuned_model_params: Dict[str, Union[int, float]],
                          seq: FileSystemSequence,
-                         discovery_path: str) -> RunStats:
+                         discovery_path: str) -> Tuple[Model, RunStats]:
         log_dir = rf'{os.getcwd()}\logs\fit\{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
         os.makedirs(log_dir)
         run_stats_path = rf'{log_dir}\run_stats.json'
@@ -85,4 +86,4 @@ class ModelTrainer:
             stream.write(jsonpickle.encode(stats))
         print(run_stats_path)
         print('Finished')
-        return stats
+        return model, stats

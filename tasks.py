@@ -38,4 +38,4 @@ def start_tensor_board(context):
 
 @task
 def start_profiler(context):
-    context.run('snakeviz nn_game.profile')
+    context.run('snakeviz ants_example.profile')

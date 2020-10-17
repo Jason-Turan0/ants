@@ -84,10 +84,10 @@ class GameStateTranslator:
     def convert_to_global_antmap_example(self, ant_turn: AntTurn, game_state: GameState) -> AntMapExample:
         gm = game_state.game_map
         atp = ant_turn.position
-        ant_vision = gm.get_positions_within_distance(ant_turn.position,
-                                                      game_state.view_radius_squared,
-                                                      use_absolute=False,
-                                                      crop_to_square=True)
+        ant_vision = set(gm.get_positions_within_distance(ant_turn.position,
+                                                          game_state.view_radius_squared,
+                                                          use_absolute=False,
+                                                          crop_to_square=True))
 
         turn_state = game_state.game_turns[ant_turn.turn_number]
         position_states = {p: self.convert_pos_to_state(gm.wrap_position(atp.row + p.row, atp.column + p.column),
