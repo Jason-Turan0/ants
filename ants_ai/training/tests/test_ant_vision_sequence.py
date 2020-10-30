@@ -12,8 +12,8 @@ from ants_ai.training.neural_network.sequences.hybrid_sequence import HybridSequ
 class TestAntVisionSequence(unittest.TestCase):
     def setUp(self) -> None:
         self.data_file_names = ['0cbdcc89-692b-46e6-a567-5014942151ed', '0acf0270-1f31-4015-aa2c-0f3a52cc80fb']
-        self.data_folder = f'{os.getcwd()}\\training\\tests\\test_data'
-        self.data_paths = [f'{self.data_folder}\\{data_file_name}.json' for data_file_name in self.data_file_names]
+        self.data_folder = os.path.abspath('./training/tests/test_data')
+        self.data_paths = [os.path.join(self.data_folder, data_file_name + '.json') for data_file_name in self.data_file_names]
         self.expected_example_counts = [1072, 1311]
         self.batch_size = 50
         self.bot_to_emulate = 'pkmiec_1'

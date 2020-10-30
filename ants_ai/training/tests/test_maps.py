@@ -20,7 +20,7 @@ class TestMaps(unittest.TestCase):
             return create_from_map_data(MapData(cols, map_data, rows))
 
     def get_test_map(self) -> GameMap:
-        return self.get_map(f'{os.getcwd()}\\engine\\maps\\training\\forage_0.map')
+        return self.get_map(os.path.abspath('./engine/maps/training/forage_0.map'))
 
     def test_construct_map(self):
         play_result = get_test_play_result()

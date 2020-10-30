@@ -17,14 +17,14 @@ def main(save_path: str, map_path: str, type: str, bot_name: str, game_count: in
 
 
 if __name__ == "__main__":
-    map_path = f'{os.getcwd()}\\ants_ai\\engine\\maps\\training\\small.map'
+    map_path = os.path.abspath('./ants_ai/engine/maps/training/small.map')
     tournament_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
-    save_path = f'{os.getcwd()}\\generated_data\\{tournament_time}'
+    save_path =os.path.abspath('./generated_data/' + tournament_time)
     parser = argparse.ArgumentParser(description='Runs games and saves the results to the file system')
     parser.add_argument('-mp', '--map-path', help='The map to use for the data generation', default=map_path)
     parser.add_argument('-sp', '--save-path', help='The directory to save the play results to', default=save_path)
     parser.add_argument('-t', '--type', help='The type of data generation. Options are All or Single', default='Single')
     parser.add_argument('-b', '--bot', help='The name of the bot to run games for if single', default='memetix')
-    parser.add_argument('-gc', '--game-count', help='The number of games to run', type=int, default=100)
+    parser.add_argument('-gc', '--game-count', help='The number of games to run', type=int, default=1)
     args = parser.parse_args()
     main(args.save_path, args.map_path, args.type, args.bot, args.game_count)

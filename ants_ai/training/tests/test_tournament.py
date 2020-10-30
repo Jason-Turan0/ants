@@ -12,14 +12,14 @@ from py4j.java_gateway import JavaGateway
 
 
 class TestTournament(unittest.TestCase):
-    def runGame(self) -> PlayResult:
+    def run_game(self) -> PlayResult:
         tr = TournamentRunner(JavaGateway())
         map_path = f'{os.getcwd()}\\engine\\maps\\training\\small.map'
         return tr.play_game(BotName('hippo'), BotName('lazarant'), str(uuid4()), map_path)
 
     @unittest.skip('Integration test')
     def test_rungame(self):
-        self.assertIsNotNone(self.runGame())
+        self.assertIsNotNone(self.run_game())
 
     def test_savegame(self):
         pr = get_test_play_result()

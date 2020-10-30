@@ -7,13 +7,13 @@ from ants_ai.training.game_state.generator import GameStateGenerator
 from ants_ai.training.neural_network.encoders.game_state_translator import GameStateTranslator
 from ants_ai.training.neural_network.encoders.encoders import decode_ant_vision_2d_examples, decode_map_examples
 
-
+@unittest.skip('Probably obsolete')
 class TestModelFactory(unittest.TestCase):
 
     def setUp(self) -> None:
         self.data_file_name = '0acf0270-1f31-4015-aa2c-0f3a52cc80fb'
-        self.data_folder = f'{os.getcwd()}\\training\\tests\\test_data'
-        self.data_path = f'{self.data_folder}\\{self.data_file_name}.json'
+        self.data_folder = os.path.abspath('./training/tests/test_data')
+        self.data_path = os.path.join(self.data_folder, self.data_file_name + '.json')
 
         cached_file_paths = [f for f in glob.glob(f'{self.data_folder}\\{self.data_file_name}*.npy')]
         for path in cached_file_paths:
