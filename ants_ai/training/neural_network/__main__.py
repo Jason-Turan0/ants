@@ -85,6 +85,7 @@ def load_game_state(path: str, gsg: GameStateGenerator) -> GameState:
 def get_game_paths(data_path) -> List[str]:
     return glob.glob(os.path.join(data_path, 'training', '**', '*.json'))
 
+
 # def convert_to_dir(arr: List[float]) -> List[Tuple[float, Direction]]:
 #     blah = list(Direction.__members__.items())
 #     blahReturn: List[Tuple[float, Direction]] = []
@@ -134,7 +135,6 @@ def get_game_paths(data_path) -> List[str]:
 
 def main(data_path: str):
     bot_to_emulate = 'memetix_1'
-    print('FOOBAR')
     game_paths = get_game_paths(data_path)
     print(len(game_paths))
     game_lengths = [1]
@@ -185,11 +185,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     main1(args.data_path)
     # compare_model_learning_curve(args.data_path)
-    #map_factory = CombinedModelFactory('memetix_1',
+    # map_factory = CombinedModelFactory('memetix_1',
     #                                   rf'E:\ants_ai_data\logs\fit\conv_2d_20201019-142704\conv_2d_weights',
     #                                   rf'E:\ants_ai_data\logs\fit\mapview_2d_20201020-113608\mapview_2d_weights')
-    #model = map_factory.construct_model({})
-    #model.summary()
+    # model = map_factory.construct_model({})
+    # model.summary()
     # conv2d 576997
     # mapview 101861
     # combined total 1,260,665 trainable 581,797 nontrainable 678,858

@@ -2,11 +2,12 @@
 **Prerequisites**
 1. Install the Java SDK and set the JAVA_HOME and JDK_HOME system variables.  Add the java bin folder to the SYSTEM PATH
 1. Install apache ant and set the ANT_HOME system variable. Add the ANT_HOME\bin folder to the SYSTEM PATH
-1. Install python x64 version and add to system PATH variable 
+1. Install python x64 v3.7.8 version and add to system PATH variable or create the next env command with that specific version of the Python interperter. 
 1. Install virtual environment in source code root folder
     1. `python -m venv venv`
 1. Install dependencies by executing the following script
-    1. `.\InstallDeps.bat`
+    1. `.\InstallDeps_Win.bat` for Windows
+    2. `.\InstallDepts_OSX` for Mac OSx
 1. Now you should have the requirements in order to run the game engine or training scripts. See tasks for common run configurations
 
 **Tasks** 

@@ -1,5 +1,4 @@
 from datetime import datetime
-from pprint import pprint
 from typing import List, Dict, Union, Tuple
 
 import os
@@ -21,8 +20,8 @@ class ModelTrainer:
         self.data_path = data_path
 
     def discover_model(self, game_state_paths: List[str], mf: ModelFactory):
-
-        discovery_path = os.path.join(self.data_path, 'model_discovery', f'{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}')
+        discovery_path = os.path.join(self.data_path, 'model_discovery',
+                                      f'{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}')
         max_epochs = 5
         callback = tf.keras.callbacks.EarlyStopping(monitor='val_categorical_accuracy', patience=3)
         tuner = kt.Hyperband(mf.construct_discover_model,
@@ -40,7 +39,8 @@ class ModelTrainer:
                          tuned_model_params: Dict[str, Union[int, float]],
                          seq: FileSystemSequence,
                          discovery_path: str) -> Tuple[Model, RunStats]:
-        log_dir = os.path.join(self.data_path, 'logs/fit/', f'{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}')
+        log_dir = os.path.join(self.data_path, f'logs{os.sep}fit{os.sep}',
+                               f'{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}')
         os.makedirs(log_dir)
         run_stats_path = os.path.join(log_dir, 'run_stats.json')
         model_weights_path = os.path.join(log_dir, f'{mf.model_name}_weights')

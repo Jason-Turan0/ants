@@ -31,7 +31,7 @@ def play_game(save_path: str, model_path: str):
 def main():
     default_save_path = os.path.abspath('./../ants_ai_data/neural_network_replays')
 
-    default_model_path = os.path.abspath('./neural_network_bot/config/conv_2d_20201019-150435/model')
+    default_model_path = os.path.abspath('./ants_ai/neural_network_bot/config/conv_2d_20201019-150435/model')
     parser = argparse.ArgumentParser(description='Runs a game using the neural network bot')
     parser.add_argument('-sp', '--save-path', help='The folder to save the replay results to',
                         default=default_save_path)
