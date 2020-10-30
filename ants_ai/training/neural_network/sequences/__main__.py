@@ -1,3 +1,4 @@
+import argparse
 import glob
 import multiprocessing as mp
 import os
@@ -55,17 +56,22 @@ def build_index(task: Tuple[str, str]):
         s = CombinedSequence([game_path], 50, bot_to_emulate)
     else:
         raise NotImplementedError(seq_type)
-    s.build_indexes(True)
+    s.build_indexes(False)
     return True
 
 
-def rebuild_indexes():
+def rebuild_indexes(data_path):
     sequence_types = ['AntVisionSequence', 'MapViewSequence', 'CombinedSequence']
-    game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
+    game_paths = [f for f in glob.glob(f'{data_path}\\training\\**\\*.json')]
     pool = mp.Pool(mp.cpu_count() - 1)
-    pool.map(build_index, [(path, seq_type) for seq_type in sequence_types for path in game_paths[100:200]])
+    pool.map(build_index, [(path, seq_type) for seq_type in sequence_types for path in game_paths])
     pool.close()
 
 
 if __name__ == "__main__":
-    rebuild_indexes()
+    default_data_path = f'{os.getcwd()}\\ants_ai_data'
+    parser = argparse.ArgumentParser(description='Rebuilds indexes')
+    parser.add_argument('-dp', '--data-path', help='The root folder to look for training data and save training stats',
+                        default=default_data_path)
+    args = parser.parse_args()
+    rebuild_indexes(args.data_path)

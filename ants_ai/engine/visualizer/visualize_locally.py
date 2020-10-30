@@ -3,12 +3,14 @@
 import re
 import sys
 import os
-#import webbrowser
+# import webbrowser
 import json
+import shutil
+
 
 def generate(data, generated_path):
-    path = os.path.dirname(__file__)
-    template_path = os.path.join(path, 'replay.html.template')
+    script_dir = os.path.dirname(__file__)
+    template_path = os.path.join(script_dir, 'replay.html.template')
     template = open(template_path, 'r')
     content = template.read()
     template.close()
@@ -25,8 +27,7 @@ def generate(data, generated_path):
     quote_re = re.compile("'")
     newline_re = re.compile("\s", re.MULTILINE)
     insert_re = re.compile(r"## REPLAY PLACEHOLDER ##")
-    path_re = re.compile(r"## PATH PLACEHOLDER ##")
-    
+
     try:
         json.loads(data)
         data = quote_re.sub(r"\\\\'", data)
@@ -34,12 +35,17 @@ def generate(data, generated_path):
     except ValueError:
         data = data.replace('\n', '\\\\n')
 
-    content = path_re.sub(mod_path, content)
-    content = insert_re.sub(data, content)   
-       
+    content = insert_re.sub(data, content)
+
     output = open(generated_path, 'w')
     output.write(content)
     output.close()
+
+    visualizer_dir_name = os.path.join(os.path.dirname(generated_path), 'visualizer')
+    if not os.path.exists(visualizer_dir_name):
+        shutil.copytree(os.path.join(script_dir, 'data'), os.path.join(visualizer_dir_name, 'data'))
+        shutil.copytree(os.path.join(script_dir, 'js'), os.path.join(visualizer_dir_name, 'js'))
+
 
 def launch(filename=None, nolaunch=False, generated_path=None):
     if generated_path == None:
@@ -53,6 +59,7 @@ def launch(filename=None, nolaunch=False, generated_path=None):
             data = f.read()
         generated_path = os.path.join(os.path.split(filename)[0], generated_path)
     generate(data, generated_path)
+
 
 if __name__ == "__main__":
     launch(nolaunch=len(sys.argv) > 1 and sys.argv[1] == '--nolaunch')

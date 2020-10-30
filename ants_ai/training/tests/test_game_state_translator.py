@@ -31,7 +31,7 @@ class TestGameStateTranslator(unittest.TestCase):
         translator = GameStateTranslator()
         translated = translator.convert_to_1d_ant_vision('pkmiec_1', [game_state])
         self.assertIsNotNone(translated)
-
+ 
     def test_create_2d_ant_vision(self):
         game_state = create_test_game_state()
         translator = GameStateTranslator()

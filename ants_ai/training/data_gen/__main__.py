@@ -1,6 +1,6 @@
 from ants_ai.training.data_gen.tournament_runner import TournamentRunner
 from py4j.java_gateway import JavaGateway
-from datetime import datetime
+
 import os
 import argparse
 
@@ -18,8 +18,7 @@ def main(save_path: str, map_path: str, type: str, bot_name: str, game_count: in
 
 if __name__ == "__main__":
     map_path = f'{os.getcwd()}\\ants_ai\\engine\\maps\\training\\small.map'
-    tournament_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
-    save_path = f'{os.getcwd()}\\generated_data\\{tournament_time}'
+    save_path = f'{os.getcwd()}\\ants_ai_data\\training'
     parser = argparse.ArgumentParser(description='Runs games and saves the results to the file system')
     parser.add_argument('-mp', '--map-path', help='The map to use for the data generation', default=map_path)
     parser.add_argument('-sp', '--save-path', help='The directory to save the play results to', default=save_path)
