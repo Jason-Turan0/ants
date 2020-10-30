@@ -84,7 +84,7 @@ class TournamentRunner:
         play_results: List[PlayResult] = seq(game_settings).map(
             lambda tuple: self.play_game(BotName(tuple[0]), BotName(tuple[1]), str(uuid4()), map_path)).list()
         tournament_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
-        tournament_dir = f'{save_path}\\{tournament_time}'
+        tournament_dir = os.path.join(save_path, tournament_time)
         os.makedirs(tournament_dir)
         for pr in play_results:
             replay_path = f'{tournament_dir}/{pr.game_id}.json'

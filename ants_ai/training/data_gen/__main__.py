@@ -18,7 +18,6 @@ def main(save_path: str, map_path: str, type: str, bot_name: str, game_count: in
 
 if __name__ == "__main__":
     map_path = os.path.abspath('./ants_ai/engine/maps/training/small.map')
-    tournament_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
     save_path =os.path.abspath('./ants_ai_data/training')
     parser = argparse.ArgumentParser(description='Runs games and saves the results to the file system')
     parser.add_argument('-mp', '--map-path', help='The map to use for the data generation', default=map_path)

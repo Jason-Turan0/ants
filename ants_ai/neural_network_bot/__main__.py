@@ -11,40 +11,34 @@ import os
 from datetime import datetime
 
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-
-def play_game(save_path):
+def play_game(save_path: str, model_path: str):
     gateway = JavaGateway()
     runner = tr.TournamentRunner(gateway)
-    map_path = f'{os.getcwd()}\\ants_ai\\engine\\maps\\training\\small.map'
-    model_path = f'{os.getcwd()}\\ants_ai\\neural_network_bot\\config\\conv_2d_20201019-150435\\model'
-    # model_path = rf'E:\ants_ai_data\logs\fit\conv_2d_20201019-110623\conv_2d\model'
-    # model_path = rf'E:\ants_ai_data\logs\fit\conv_2d_20201019-112133\model'
+    map_path = os.path.abspath('./ants_ai/engine/maps/training/small.map')
     for bot_name in runner.all_bots:
         game_id = str(uuid4())
-        # profile = cProfile.Profile()
-        # profile.enable()
 
         pr = runner.play_game_with_bots(JavaBot(game_id, gateway, BotName(bot_name)),
                                         NNBot(game_id, BotName('neural_network_bot'), model_path), game_id, map_path)
-        # profile.disable()
-        # profile.dump_stats('nn_game.profile')
         play_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
         play_dir = f'{save_path}\\{play_time}'
         os.makedirs(play_dir)
         path = f'{play_dir}\\{pr.game_id}.json'
         tr.save_play_result(pr, path)
-        print(path)
         tr.generate_visualization(path, path.replace('.json', '.html'))
 
 
 def main():
-    default_data_path = f'{os.getcwd()}\\ants_ai_data\\neural_network_replays'
+    default_save_path = os.path.abspath('./../ants_ai_data/neural_network_replays')
+
+    default_model_path = os.path.abspath('./neural_network_bot/config/conv_2d_20201019-150435/model')
     parser = argparse.ArgumentParser(description='Runs a game using the neural network bot')
     parser.add_argument('-sp', '--save-path', help='The folder to save the replay results to',
-                        default=default_data_path)
+                        default=default_save_path)
+    parser.add_argument('-mp', '--model-path', help='The path to the model weights',
+                        default=default_model_path)
     args = parser.parse_args()
-    play_game(args.save_path)
+    play_game(args.save_path, args.model_path)
 
 
 if __name__ == "__main__":

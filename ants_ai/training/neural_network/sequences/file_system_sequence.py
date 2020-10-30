@@ -28,6 +28,8 @@ class FileSystemSequence(Sequence):
         self.loaded_indexes: List[LoadedIndex] = []
         self.max_load_count = 10
         self.dataset_type = dataset_type
+        if len(game_paths) == 0:
+            raise ValueError('Must provide at least one game path for the index')
 
     @abstractmethod
     def build_indexes(self, rebuild: bool):

@@ -47,10 +47,8 @@ def show_learning_curve(data_path: str, model_name: str):
                                  glob.glob(f'{data_path}\\logs\\fit\\**\\run_stats.json')]
 
     def get_data_points(rs: RunStats):
-        # train_stop_index = rs.history['val_loss'].index(seq(rs.history["val_loss"]).min())
         val_loss = seq(rs.history["val_loss"]).last()
         val_cat_acc = seq(rs.history["val_categorical_accuracy"]).last()
-        if rs.train_shape[0][0] > 900000: print(rs.weight_path)
         return (
             rs.train_shape[0][0],
             seq(rs.history["loss"]).last(),
@@ -85,8 +83,7 @@ def load_game_state(path: str, gsg: GameStateGenerator) -> GameState:
 
 
 def get_game_paths(data_path) -> List[str]:
-    return [f for f in glob.glob(f'{data_path}\\training\\**\\*.json')]
-
+    return glob.glob(os.path.join(data_path, 'training', '**', '*.json'))
 
 # def convert_to_dir(arr: List[float]) -> List[Tuple[float, Direction]]:
 #     blah = list(Direction.__members__.items())
@@ -137,9 +134,10 @@ def get_game_paths(data_path) -> List[str]:
 
 def main(data_path: str):
     bot_to_emulate = 'memetix_1'
+    print('FOOBAR')
     game_paths = get_game_paths(data_path)
     print(len(game_paths))
-    game_lengths = [200, 300, 400, 600, 800, 900, 1000, 1200]
+    game_lengths = [1]
     # seq = HybridSequence(game_paths, 50, bot_to_emulate)
     # seq.build_indexes()
     mt = ModelTrainer(data_path)
@@ -163,7 +161,7 @@ def main(data_path: str):
 def main1(data_path: str):
     bot_to_emulate = 'memetix_1'
     game_paths = get_game_paths(data_path)
-    game_lengths = [600, 800, 900, 1000, 1200]
+    game_lengths = [2]
     mt = ModelTrainer(data_path)
     conv_factory = Conv2DModelFactory(bot_to_emulate)
 
@@ -180,17 +178,18 @@ def compare_model_learning_curve(data_path: str):
 
 
 if __name__ == "__main__":
-    default_data_path = f'{os.getcwd()}\\ants_ai_data'
+    default_data_path = os.path.abspath('../ants_ai_data')
     parser = argparse.ArgumentParser(description='Performs training')
     parser.add_argument('-dp', '--data-path', help='The root folder to look for training data and save training stats',
                         default=default_data_path)
     args = parser.parse_args()
+    main1(args.data_path)
     # compare_model_learning_curve(args.data_path)
-    map_factory = CombinedModelFactory('memetix_1',
-                                       rf'E:\ants_ai_data\logs\fit\conv_2d_20201019-142704\conv_2d_weights',
-                                       rf'E:\ants_ai_data\logs\fit\mapview_2d_20201020-113608\mapview_2d_weights')
-    model = map_factory.construct_model({})
-    model.summary()
+    #map_factory = CombinedModelFactory('memetix_1',
+    #                                   rf'E:\ants_ai_data\logs\fit\conv_2d_20201019-142704\conv_2d_weights',
+    #                                   rf'E:\ants_ai_data\logs\fit\mapview_2d_20201020-113608\mapview_2d_weights')
+    #model = map_factory.construct_model({})
+    #model.summary()
     # conv2d 576997
     # mapview 101861
     # combined total 1,260,665 trainable 581,797 nontrainable 678,858
