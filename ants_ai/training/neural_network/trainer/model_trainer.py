@@ -16,11 +16,12 @@ from tensorflow_core.python.keras import Model
 
 class ModelTrainer:
 
-    def __init__(self):
+    def __init__(self, data_path: str):
         self.batch_size = 50
+        self.data_path = data_path
 
     def discover_model(self, game_state_paths: List[str], mf: ModelFactory):
-        discovery_path = f'{os.getcwd()}/model_discovery/{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
+        discovery_path = f'{self.data_path}/model_discovery/{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
         max_epochs = 5
         callback = tf.keras.callbacks.EarlyStopping(monitor='val_categorical_accuracy', patience=3)
         tuner = kt.Hyperband(mf.construct_discover_model,
@@ -38,10 +39,11 @@ class ModelTrainer:
                          tuned_model_params: Dict[str, Union[int, float]],
                          seq: FileSystemSequence,
                          discovery_path: str) -> Tuple[Model, RunStats]:
-        log_dir = rf'{os.getcwd()}\logs\fit\{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
+        log_dir = rf'{self.data_path}\logs\fit\{mf.model_name}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
         os.makedirs(log_dir)
         run_stats_path = rf'{log_dir}\run_stats.json'
         model_weights_path = rf'{log_dir}\{mf.model_name}_weights'
+        model_path = rf'{log_dir}\model'
         file_writer = tf.summary.create_file_writer(log_dir + r"\validation")
         file_writer.set_as_default()
         epochs = 10
@@ -61,6 +63,7 @@ class ModelTrainer:
             if current_best < results[1]:
                 print(f'Saving model weights on epoch {epoch}')
                 model.save_weights(model_weights_path)
+                model.save(model_path, save_format='h5')
             val_cat_acc.append(results[1])
 
         callbacks = [

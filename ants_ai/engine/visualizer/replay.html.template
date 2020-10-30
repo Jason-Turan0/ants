@@ -3,11 +3,11 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>Ant Canvas</title>
-	<script type="text/javascript" src="## PATH PLACEHOLDER ##js/visualizer.js"></script>
+	<script type="text/javascript" src="visualizer/js/visualizer.js"></script>
 	<script type="text/javascript">
 		function init() {
             var options = new Options();
-            options.data_dir = '## PATH PLACEHOLDER ##data/';
+            options.data_dir = 'visualizer/data/';
             options.embedded = true;
 			var visualizer = new Visualizer(document.body, options);
 			visualizer.loadReplayData('## REPLAY PLACEHOLDER ##');

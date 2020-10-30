@@ -11,6 +11,7 @@ from ants_ai.engine.engine import run_game
 from ants_ai.engine.play_result import PlayResult
 from typing import List, Tuple
 import os
+from datetime import datetime
 
 from ants_ai.engine.java_bot import JavaBot
 
@@ -82,11 +83,12 @@ class TournamentRunner:
 
         play_results: List[PlayResult] = seq(game_settings).map(
             lambda tuple: self.play_game(BotName(tuple[0]), BotName(tuple[1]), str(uuid4()), map_path)).list()
-
-        os.makedirs(save_path)
+        tournament_time = datetime.today().strftime('%Y-%m-%d-%H-%M-%S')
+        tournament_dir = f'{save_path}\\{tournament_time}'
+        os.makedirs(tournament_dir)
         for pr in play_results:
-            replay_path = f'{save_path}/{pr.game_id}.json'
-            html_path = f'{save_path}/{pr.game_id}.html'
+            replay_path = f'{tournament_dir}/{pr.game_id}.json'
+            html_path = f'{tournament_dir}/{pr.game_id}.html'
             save_play_result(pr, replay_path)
             generate_visualization(replay_path, html_path)
 

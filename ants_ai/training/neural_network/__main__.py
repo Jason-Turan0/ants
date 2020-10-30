@@ -1,65 +1,19 @@
-import logging
-import os
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # FATAL
-os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'  # FATAL
-logging.getLogger('tensorflow').setLevel(logging.FATAL)
-logging.getLogger('tensorflow').disabled = True
-import cProfile
-# lg = logging.getLogger('tensorflow')
-# lg.disabled = True
-# lg.setLevel(logging.ERROR)
-#
-#
-# class NoParsingFilter(logging.Filter):
-#     def filter(self, record):
-#         print('FILTER!')
-#         return True
-#         # return not record.getMessage().startswith('parsing')
-#
-#
-# lg.addFilter(NoParsingFilter())
-#
-# import tensorflow as tf
-#
-# tf.logging.set_verbosity(tf.logging.ERROR)
-#
-# print(lg)
-
+import argparse
 import glob
-import multiprocessing as mp
 import os
-from pprint import pprint
-from typing import List, Tuple
+from typing import List
 
 import jsonpickle
-# import matplotlib.pyplot as plt
-from ants_ai.training.neural_network.sequences.ant_vision_sequence import AntVisionSequence
-from ants_ai.training.neural_network.sequences.map_view_sequence import MapViewSequence
-
-from ants_ai.training.neural_network.factories.hybrid_model_factory import HybridModelFactory
-from ants_ai.training.neural_network.sequences.hybrid_sequence import HybridSequence
-# from ants_ai.training.neural_network.factories.conv2d_maxpool_model_factory import Conv2DMaxPoolModelFactory
-from ants_ai.training.neural_network.factories.conv2d_model_factory import Conv2DModelFactory
+from ants_ai.training.game_state.game_state import GameState
+from ants_ai.training.game_state.generator import GameStateGenerator
 from ants_ai.training.neural_network.factories.combined_model_factory import CombinedModelFactory
+from ants_ai.training.neural_network.factories.conv2d_model_factory import Conv2DModelFactory
 from ants_ai.training.neural_network.factories.map_view_model_factory import MapViewModelFactory
-from ants_ai.training.game_state.game_map import Direction
 from ants_ai.training.neural_network.trainer.model_trainer import ModelTrainer
 from ants_ai.training.neural_network.trainer.run_stats import RunStats
-from ants_ai.training.neural_network.sequences.data_structs import DatasetType
-from ants_ai.training.game_state.generator import GameStateGenerator
-from ants_ai.training.game_state.game_state import GameState
-from ants_ai.training.neural_network.encoders.game_state_translator import GameStateTranslator
-from ants_ai.training.neural_network.encoders import encoders as enc
 from functional import seq
-from prettytable import PrettyTable
-from tensorflow.python.keras.models import Model
 from matplotlib import pyplot as plt
-
-
-# GeForce GTX 750 Ti
-# python 3.7.8
-# tf version 2.1.1
+from prettytable import PrettyTable
 
 
 def read_file_contents(path):
@@ -88,14 +42,15 @@ def plot_learning_curve(data, model_name: str):
     plt.show()
 
 
-def show_learning_curve(model_name: str):
+def show_learning_curve(data_path: str, model_name: str):
     run_stats: List[RunStats] = [jsonpickle.decode(read_file_contents(path)) for path in
-                                 glob.glob(f'{os.getcwd()}\\logs\\fit\\**\\run_stats.json')]
+                                 glob.glob(f'{data_path}\\logs\\fit\\**\\run_stats.json')]
 
     def get_data_points(rs: RunStats):
         # train_stop_index = rs.history['val_loss'].index(seq(rs.history["val_loss"]).min())
         val_loss = seq(rs.history["val_loss"]).last()
         val_cat_acc = seq(rs.history["val_categorical_accuracy"]).last()
+        if rs.train_shape[0][0] > 900000: print(rs.weight_path)
         return (
             rs.train_shape[0][0],
             seq(rs.history["loss"]).last(),
@@ -122,30 +77,15 @@ def show_learning_curve(model_name: str):
     plot_learning_curve(data_points, model_name)
 
 
-def print_layers(model: Model):
-    for l in model.layers:
-        print(f'{l.name}, {l.input_shape}, {l.output_shape}')
-
-
-def main():
-    bot_to_emulate = 'memetix_1'
-    game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
-    print(len(game_paths))
-    game_lengths = [5, 10, 20, 50, 75, 100]
-    # seq = HybridSequence(game_paths, 50, bot_to_emulate)
-    # seq.build_indexes()
-    mt = ModelTrainer()
-    factory = MapViewModelFactory(bot_to_emulate)
-    mt.train_model(game_paths[:10], factory)
-    for gl in game_lengths:
-        mt.train_model(game_paths[0:gl], factory)
-
-
 def load_game_state(path: str, gsg: GameStateGenerator) -> GameState:
     with open(path, "r") as f:
         json_data = f.read()
         pr = jsonpickle.decode(json_data)
         return gsg.generate(pr)
+
+
+def get_game_paths(data_path) -> List[str]:
+    return [f for f in glob.glob(f'{data_path}\\training\\**\\*.json')]
 
 
 # def convert_to_dir(arr: List[float]) -> List[Tuple[float, Direction]]:
@@ -195,24 +135,14 @@ def load_game_state(path: str, gsg: GameStateGenerator) -> GameState:
 #     acc = seq(range(len(predictions))).filter(lambda i: predictions[i] == actuals[i]).len() / len(actuals)
 #     print(acc)
 
-
-def main2():
+def main(data_path: str):
     bot_to_emulate = 'memetix_1'
-    gst = GameStateTranslator()
-    game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
-    game_states = seq(game_paths[2:4]).map(lambda path: load_game_state(path, GameStateGenerator())).to_list()
-    mv_features, mv_labels = enc.encode_map_examples(gst.convert_to_global_antmap(bot_to_emulate, game_states), 7)
-    pprint(mv_features.shape)
-
-
-def main3():
-    bot_to_emulate = 'memetix_1'
-    game_paths = [f for f in glob.glob(f'{os.getcwd()}\\training\\tests\\test_data\\**\\*.json')]
+    game_paths = get_game_paths(data_path)
     print(len(game_paths))
-    game_lengths = [1, 2, 5, 10, 20, 30, 50, 60, 80, 100]
+    game_lengths = [200, 300, 400, 600, 800, 900, 1000, 1200]
     # seq = HybridSequence(game_paths, 50, bot_to_emulate)
     # seq.build_indexes()
-    mt = ModelTrainer()
+    mt = ModelTrainer(data_path)
     map_factory = MapViewModelFactory(bot_to_emulate)
     conv2D_factory = Conv2DModelFactory(bot_to_emulate)
 
@@ -227,11 +157,40 @@ def main3():
         print(f"Finished training on game length {gl}. Test acc {combined_stats.test_categorical_accuracy}")
 
 
-def compare_model_learning_curve():
-    show_learning_curve('mapview_2d')
-    show_learning_curve('conv_2d')
-    show_learning_curve('combined_2d')
+# Total data as of 10-19-2020
+# 1145 Games
+# 1,597,269 Examples
+def main1(data_path: str):
+    bot_to_emulate = 'memetix_1'
+    game_paths = get_game_paths(data_path)
+    game_lengths = [600, 800, 900, 1000, 1200]
+    mt = ModelTrainer(data_path)
+    conv_factory = Conv2DModelFactory(bot_to_emulate)
+
+    for gl in game_lengths:
+        train_game_paths = game_paths[0:gl]
+        conv_model, conv_stats = mt.train_model(train_game_paths, conv_factory)
+        print(conv_stats.test_categorical_accuracy)
+
+
+def compare_model_learning_curve(data_path: str):
+    show_learning_curve(data_path, 'mapview_2d')
+    show_learning_curve(data_path, 'conv_2d')
+    show_learning_curve(data_path, 'combined_2d')
 
 
 if __name__ == "__main__":
-    compare_model_learning_curve()
+    default_data_path = f'{os.getcwd()}\\ants_ai_data'
+    parser = argparse.ArgumentParser(description='Performs training')
+    parser.add_argument('-dp', '--data-path', help='The root folder to look for training data and save training stats',
+                        default=default_data_path)
+    args = parser.parse_args()
+    # compare_model_learning_curve(args.data_path)
+    map_factory = CombinedModelFactory('memetix_1',
+                                       rf'E:\ants_ai_data\logs\fit\conv_2d_20201019-142704\conv_2d_weights',
+                                       rf'E:\ants_ai_data\logs\fit\mapview_2d_20201020-113608\mapview_2d_weights')
+    model = map_factory.construct_model({})
+    model.summary()
+    # conv2d 576997
+    # mapview 101861
+    # combined total 1,260,665 trainable 581,797 nontrainable 678,858

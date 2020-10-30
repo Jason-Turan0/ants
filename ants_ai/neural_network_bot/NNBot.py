@@ -7,8 +7,9 @@ from ants_ai.training.game_state.game_map import create_map, GameMap, Position, 
 from ants_ai.engine.bot import Bot
 from ants_ai.engine.bot_name import BotName
 from ants_ai.training.neural_network.encoders.encoders import encode_2d_features
-from game_state_translator import GameStateTranslator
-from position_state import PositionState
+from ants_ai.training.neural_network.encoders.game_state_translator import GameStateTranslator
+from ants_ai.training.neural_network.encoders.position_state import PositionState
+from tensorflow_core.python.keras import Model
 
 
 class VisibleAnt:
@@ -50,7 +51,9 @@ class NNBot(Bot):
         self.pending_orders: List[Order] = []
         self.channel_count = 7
         self.gst = GameStateTranslator()
-        self.model = keras.models.load_model(model_path)
+
+        self.model: Model = keras.models.load_model(model_path)
+        print(self.model.input.shape)
 
     def start(self, start_data: str):
         self.game_options = seq(start_data.split('\n')) \
@@ -101,8 +104,8 @@ class NNBot(Bot):
             .to_list()
 
         pending_orders = seq(friendly_ants) \
-            .map(lambda va: Order(va.position_start, Direction.NONE,
-                                  self.game_map.adjacent_movement_position(va.position_start, Direction.NONE))) \
+            .map(lambda va: Order(va.position, Direction.NONE,
+                                  self.game_map.adjacent_movement_position(va.position, Direction.NONE))) \
             .to_list()
         predictions: List[Tuple[VisibleAnt, Direction]] = self.create_predictions(friendly_ants)
 
@@ -110,13 +113,13 @@ class NNBot(Bot):
         while seq(pending_orders).filter(lambda po: po.dir == Direction.NONE).len() > 0 and pass_through_count < 3:
             for index, order in enumerate(pending_orders):
                 # pylint: disable=cell-var-from-loop
-                matching_prediction = seq(predictions).find(lambda t: t[0].position_start == order.position_start)
-                new_order_position = self.game_map.adjacent_movement_position(order.position_start,
+                matching_prediction = seq(predictions).find(lambda t: t[0].position == order.position)
+                new_order_position = self.game_map.adjacent_movement_position(order.position,
                                                                               matching_prediction[1])
                 # pylint: disable=cell-var-from-loop
                 conflicting_order = seq(pending_orders).find(lambda po: po.next_position == new_order_position)
                 if conflicting_order is None:
-                    pending_orders[index] = Order(order.position_start, matching_prediction[1], new_order_position)
+                    pending_orders[index] = Order(order.position, matching_prediction[1], new_order_position)
             pass_through_count += 1
         return pending_orders
 
